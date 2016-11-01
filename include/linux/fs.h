@@ -204,10 +204,6 @@ typedef int (dio_iodone_t)(struct kiocb *iocb, loff_t offset,
  *			non-volatile media on completion.
  *
  */
-#define RW_MASK			REQ_OP_WRITE
-
-#define READ			REQ_OP_READ
-#define WRITE			REQ_OP_WRITE
 
 #define READ_SYNC		REQ_SYNC
 #define WRITE_SYNC		(REQ_SYNC | REQ_NOIDLE)
@@ -2574,14 +2570,6 @@ extern bool is_bad_inode(struct inode *);
 static inline bool op_is_write(unsigned int op)
 {
 	return op == REQ_OP_READ ? false : true;
-}
-
-/*
- * return data direction, READ or WRITE
- */
-static inline int bio_data_dir(struct bio *bio)
-{
-	return op_is_write(bio_op(bio)) ? WRITE : READ;
 }
 
 extern void check_disk_size_change(struct gendisk *disk,
