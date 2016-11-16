@@ -515,6 +515,8 @@ int __udpv6_queue_rcv_skb(struct sock *sk, struct sk_buff *skb)
 		sock_rps_save_rxhash(sk, skb);
 		sk_mark_napi_id(sk, skb);
 		sk_incoming_cpu_update(sk);
+	} else {
+		sk_mark_napi_id_once(sk, skb);
 	}
 
 	rc = __sock_queue_rcv_skb(sk, skb);
