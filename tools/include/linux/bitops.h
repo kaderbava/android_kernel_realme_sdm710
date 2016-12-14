@@ -3,6 +3,7 @@
 
 #include <asm/types.h>
 #include <linux/kernel.h>
+
 #ifndef __WORDSIZE
 #define __WORDSIZE (__SIZEOF_LONG__ * 8)
 #endif

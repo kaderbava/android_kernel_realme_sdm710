@@ -20,6 +20,7 @@
 #define TAG 0
 static pthread_mutex_t tree_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t threads[NUM_THREADS];
+static unsigned int seeds[3];
 RADIX_TREE(tree, GFP_KERNEL);
 bool test_complete;
 
@@ -27,6 +28,8 @@ bool test_complete;
 static void *add_entries_fn(void *arg)
 {
 	int pgoff;
+
+	rcu_register_thread();
 
 	while (!test_complete) {
 		for (pgoff = 0; pgoff < 100; pgoff++) {
@@ -37,20 +40,24 @@ static void *add_entries_fn(void *arg)
 		}
 	}
 
+	rcu_unregister_thread();
+
 	return NULL;
 }
 
 /*
  * Iterate over the tagged entries, doing a radix_tree_iter_retry() as we find
  * things that have been removed and randomly resetting our iteration to the
- * next chunk with radix_tree_iter_next().  Both radix_tree_iter_retry() and
- * radix_tree_iter_next() cause radix_tree_next_slot() to be called with a
+ * next chunk with radix_tree_iter_resume().  Both radix_tree_iter_retry() and
+ * radix_tree_iter_resume() cause radix_tree_next_slot() to be called with a
  * NULL 'slot' variable.
  */
 static void *tagged_iteration_fn(void *arg)
 {
 	struct radix_tree_iter iter;
 	void **slot;
+
+	rcu_register_thread();
 
 	while (!test_complete) {
 		rcu_read_lock();
@@ -71,11 +78,17 @@ static void *tagged_iteration_fn(void *arg)
 				continue;
 			}
 
-			if (rand() % 50 == 0)
-				slot = radix_tree_iter_next(&iter);
+			if (rand_r(&seeds[0]) % 50 == 0) {
+				slot = radix_tree_iter_resume(slot, &iter);
+				rcu_read_unlock();
+				rcu_barrier();
+				rcu_read_lock();
+			}
 		}
 		rcu_read_unlock();
 	}
+
+	rcu_unregister_thread();
 
 	return NULL;
 }
@@ -83,14 +96,16 @@ static void *tagged_iteration_fn(void *arg)
 /*
  * Iterate over the entries, doing a radix_tree_iter_retry() as we find things
  * that have been removed and randomly resetting our iteration to the next
- * chunk with radix_tree_iter_next().  Both radix_tree_iter_retry() and
- * radix_tree_iter_next() cause radix_tree_next_slot() to be called with a
+ * chunk with radix_tree_iter_resume().  Both radix_tree_iter_retry() and
+ * radix_tree_iter_resume() cause radix_tree_next_slot() to be called with a
  * NULL 'slot' variable.
  */
 static void *untagged_iteration_fn(void *arg)
 {
 	struct radix_tree_iter iter;
 	void **slot;
+
+	rcu_register_thread();
 
 	while (!test_complete) {
 		rcu_read_lock();
@@ -111,11 +126,17 @@ static void *untagged_iteration_fn(void *arg)
 				continue;
 			}
 
-			if (rand() % 50 == 0)
-				slot = radix_tree_iter_next(&iter);
+			if (rand_r(&seeds[1]) % 50 == 0) {
+				slot = radix_tree_iter_resume(slot, &iter);
+				rcu_read_unlock();
+				rcu_barrier();
+				rcu_read_lock();
+			}
 		}
 		rcu_read_unlock();
 	}
+
+	rcu_unregister_thread();
 
 	return NULL;
 }
@@ -126,15 +147,19 @@ static void *untagged_iteration_fn(void *arg)
  */
 static void *remove_entries_fn(void *arg)
 {
+	rcu_register_thread();
+
 	while (!test_complete) {
 		int pgoff;
 
-		pgoff = rand() % 100;
+		pgoff = rand_r(&seeds[2]) % 100;
 
 		pthread_mutex_lock(&tree_lock);
 		item_delete(&tree, pgoff);
 		pthread_mutex_unlock(&tree_lock);
 	}
+
+	rcu_unregister_thread();
 
 	return NULL;
 }
@@ -146,8 +171,10 @@ void iteration_test(void)
 
 	printf("Running iteration tests for 10 seconds\n");
 
-	srand(time(0));
 	test_complete = false;
+
+	for (i = 0; i < 3; i++)
+		seeds[i] = rand();
 
 	if (pthread_create(&threads[0], NULL, tagged_iteration_fn, NULL)) {
 		perror("pthread_create");

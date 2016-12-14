@@ -142,6 +142,62 @@ void item_full_scan(struct radix_tree_root *root, unsigned long start,
 	assert(nfound == 0);
 }
 
+/* Use the same pattern as tag_pages_for_writeback() in mm/page-writeback.c */
+int tag_tagged_items(struct radix_tree_root *root, pthread_mutex_t *lock,
+			unsigned long start, unsigned long end, unsigned batch,
+			unsigned iftag, unsigned thentag)
+{
+	unsigned long tagged = 0;
+	struct radix_tree_iter iter;
+	void **slot;
+
+	if (batch == 0)
+		batch = 1;
+
+	if (lock)
+		pthread_mutex_lock(lock);
+	radix_tree_for_each_tagged(slot, root, &iter, start, iftag) {
+		if (iter.index > end)
+			break;
+		radix_tree_iter_tag_set(root, &iter, thentag);
+		tagged++;
+		if ((tagged % batch) != 0)
+			continue;
+		slot = radix_tree_iter_resume(slot, &iter);
+		if (lock) {
+			pthread_mutex_unlock(lock);
+			rcu_barrier();
+			pthread_mutex_lock(lock);
+		}
+	}
+	if (lock)
+		pthread_mutex_unlock(lock);
+
+	return tagged;
+}
+
+/* Use the same pattern as find_swap_entry() in mm/shmem.c */
+unsigned long find_item(struct radix_tree_root *root, void *item)
+{
+	struct radix_tree_iter iter;
+	void **slot;
+	unsigned long found = -1;
+	unsigned long checked = 0;
+
+	radix_tree_for_each_slot(slot, root, &iter, 0) {
+		if (*slot == item) {
+			found = iter.index;
+			break;
+		}
+		checked++;
+		if ((checked % 4) != 0)
+			continue;
+		slot = radix_tree_iter_resume(slot, &iter);
+	}
+
+	return found;
+}
+
 static int verify_node(struct radix_tree_node *slot, unsigned int tag,
 			int tagged)
 {
