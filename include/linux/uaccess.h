@@ -3,6 +3,9 @@
 
 #include <linux/sched.h>
 
+#define VERIFY_READ 0
+#define VERIFY_WRITE 1
+
 #define uaccess_kernel() segment_eq(get_fs(), KERNEL_DS)
 
 #include <asm/uaccess.h>
