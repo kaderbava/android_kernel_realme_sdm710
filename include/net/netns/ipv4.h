@@ -126,6 +126,7 @@ struct netns_ipv4 {
 	unsigned int sysctl_tcp_notsent_lowat;
 	int sysctl_tcp_tw_reuse;
 	struct inet_timewait_death_row tcp_death_row;
+	int sysctl_max_syn_backlog;
 	int sysctl_tcp_default_init_rwnd;
 
 #ifdef CONFIG_NET_L3_MASTER_DEV
