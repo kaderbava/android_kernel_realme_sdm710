@@ -598,8 +598,8 @@ static int apparmor_getprocattr(struct task_struct *task, char *name,
 	return error;
 }
 
-static int apparmor_setprocattr(struct task_struct *task, char *name,
-				void *value, size_t size)
+static int apparmor_setprocattr(const char *name, void *value,
+				size_t size)
 {
 	char *command, *largs = NULL, *args = value;
 	size_t arg_size;
@@ -608,9 +608,6 @@ static int apparmor_setprocattr(struct task_struct *task, char *name,
 
 	if (size == 0)
 		return -EINVAL;
-	/* task can only write its own attributes */
-	if (current != task)
-		return -EACCES;
 
 	/* AppArmor requires that the buffer must be null terminated atm */
 	if (args[size - 1] != '\0') {
