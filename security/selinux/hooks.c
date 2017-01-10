@@ -4012,12 +4012,6 @@ static int selinux_task_kill(struct task_struct *p, struct siginfo *info,
 	return avc_has_perm(secid, task_sid(p), SECCLASS_PROCESS, perm, NULL);
 }
 
-static int selinux_task_wait(struct task_struct *p)
-{
-	return avc_has_perm(task_sid(p), current_sid(), SECCLASS_PROCESS,
-			    PROCESS__SIGCHLD, NULL);
-}
-
 static void selinux_task_to_inode(struct task_struct *p,
 				  struct inode *inode)
 {
