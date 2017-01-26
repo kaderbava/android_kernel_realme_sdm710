@@ -116,6 +116,10 @@ struct netns_ipv4 {
 	unsigned int sysctl_tcp_notsent_lowat;
 	int sysctl_tcp_default_init_rwnd;
 
+#ifdef CONFIG_NET_L3_MASTER_DEV
+	int sysctl_udp_l3mdev_accept;
+#endif
+
 	int sysctl_igmp_max_memberships;
 	int sysctl_igmp_max_msf;
 	int sysctl_igmp_llm_reports;
