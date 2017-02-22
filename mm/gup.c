@@ -590,7 +590,7 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
 					foll_flags |= FOLL_WRITE;
 				i = follow_hugetlb_page(mm, vma, pages, vmas,
 						&start, &nr_pages, i,
-						foll_flags);
+						foll_flags, nonblocking);
 				continue;
 			}
 		}
