@@ -834,7 +834,8 @@ out:
  *    Wait for incoming connection
  *
  */
-static int irda_accept(struct socket *sock, struct socket *newsock, int flags)
+static int irda_accept(struct socket *sock, struct socket *newsock, int flags,
+		       bool kern)
 {
 	struct sock *sk = sock->sk;
 	struct irda_sock *new, *self = irda_sk(sk);
@@ -842,7 +843,7 @@ static int irda_accept(struct socket *sock, struct socket *newsock, int flags)
 	struct sk_buff *skb = NULL;
 	int err;
 
-	err = irda_create(sock_net(sk), newsock, sk->sk_protocol, 0);
+	err = irda_create(sock_net(sk), newsock, sk->sk_protocol, kern);
 	if (err)
 		return err;
 
