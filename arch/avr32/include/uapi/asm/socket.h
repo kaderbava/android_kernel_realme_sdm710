@@ -92,4 +92,6 @@
 
 #define SO_COOKIE		57
 
+#define SO_MEMINFO		55
+
 #endif /* _UAPI__ASM_AVR32_SOCKET_H */
