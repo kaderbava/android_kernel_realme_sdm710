@@ -173,6 +173,12 @@ extern struct task_group root_task_group;
 # define INIT_TASK_TI(tsk)
 #endif
 
+#ifdef CONFIG_SECURITY
+#define INIT_TASK_SECURITY .security = NULL,
+#else
+#define INIT_TASK_SECURITY
+#endif
+
 /* Attach to the init_task data structure for proper alignment */
 #ifdef CONFIG_ARCH_TASK_STRUCT_ON_STACK
 #define __init_task_data __attribute__((__section__(".data..init_task")))

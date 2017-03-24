@@ -2255,6 +2255,10 @@ struct task_struct {
 #ifdef CONFIG_OPLUS_FEATURE_FUSE_FS_SHORTCIRCUIT
 	struct fuse_package *fpack;
 #endif /* CONFIG_OPLUS_FEATURE_FUSE_FS_SHORTCIRCUIT */
+#ifdef CONFIG_SECURITY
+	/* Used by LSM modules for access restriction: */
+	void				*security;
+#endif
 /* CPU-specific state of this task */
 	struct thread_struct thread;
 /*
