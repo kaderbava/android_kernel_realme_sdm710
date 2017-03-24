@@ -558,8 +558,13 @@
  *	manual page for definitions of the @clone_flags.
  *	@clone_flags contains the flags indicating what should be shared.
  *	Return 0 if permission is granted.
+ * @task_alloc:
+ *	@task task being allocated.
+ *	@clone_flags contains the flags indicating what should be shared.
+ *	Handle allocation of task-related resources.
+ *	Returns a zero on success, negative values on failure.
  * @task_free:
- *	@task task being freed
+ *	@task task about to be freed.
  *	Handle release of task-related resources. (Note that this can be called
  *	from interrupt context.)
  * @cred_alloc_blank:
