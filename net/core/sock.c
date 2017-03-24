@@ -1294,6 +1294,17 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
 		goto lenout;
 	}
 
+#ifdef CONFIG_NET_RX_BUSY_POLL
+	case SO_INCOMING_NAPI_ID:
+		v.val = READ_ONCE(sk->sk_napi_id);
+
+		/* aggregate non-NAPI IDs down to 0 */
+		if (v.val < NR_CPUS + 1)
+			v.val = 0;
+
+		break;
+#endif
+
 	case SO_COOKIE:
 		lv = sizeof(u64);
 		if (len < lv)

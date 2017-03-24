@@ -96,6 +96,8 @@
 
 #define SO_MEMINFO		55
 
+#define SO_INCOMING_NAPI_ID	56
+
 #define SO_COOKIE		57
 
 #endif /* __ASM_GENERIC_SOCKET_H */
