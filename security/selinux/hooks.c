@@ -3818,7 +3818,8 @@ static int selinux_file_open(struct file *file)
 
 /* task security operations */
 
-static int selinux_task_create(unsigned long clone_flags)
+static int selinux_task_alloc(struct task_struct *task,
+			      unsigned long clone_flags)
 {
 	u32 sid = current_sid();
 
@@ -6559,7 +6560,7 @@ static struct security_hook_list selinux_hooks[] __lsm_ro_after_init = {
 
 	LSM_HOOK_INIT(file_open, selinux_file_open),
 
-	LSM_HOOK_INIT(task_create, selinux_task_create),
+	LSM_HOOK_INIT(task_alloc, selinux_task_alloc),
 	LSM_HOOK_INIT(cred_prepare, selinux_cred_prepare),
 	LSM_HOOK_INIT(cred_transfer, selinux_cred_transfer),
 	LSM_HOOK_INIT(cred_getsecid, selinux_cred_getsecid),
