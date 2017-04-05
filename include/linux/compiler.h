@@ -460,6 +460,10 @@ unsigned long read_word_at_a_time(const void *addr)
 # define __attribute_const__	/* unimplemented */
 #endif
 
+#ifndef __designated_init
+# define __designated_init
+#endif
+
 #ifndef __latent_entropy
 # define __latent_entropy
 #endif
