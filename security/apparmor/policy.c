@@ -885,9 +885,11 @@ ssize_t aa_replace_profiles(struct aa_ns *view, struct aa_profile *profile,
 	if (ns_name) {
 		ns = aa_prepare_ns(view, ns_name);
 		if (IS_ERR(ns)) {
+			op = OP_PROF_LOAD;
 			info = "failed to prepare namespace";
 			error = PTR_ERR(ns);
 			ns = NULL;
+			ent = NULL;
 			goto fail;
 		}
 	} else
@@ -1062,7 +1064,7 @@ fail_lock:
 	/* audit cause of failure */
 	op = (ent && !ent->old) ? OP_PROF_LOAD : OP_PROF_REPL;
 fail:
-	audit_policy(profile, op, ns_name, ent->new->base.hname,
+	audit_policy(profile, op, ns_name, ent ? ent->new->base.hname : NULL,
 		     info, error);
 	/* audit status that rest of profiles in the atomic set failed too */
 	info = "valid profile in failed atomic policy load";
@@ -1072,7 +1074,7 @@ fail:
 			/* skip entry that caused failure */
 			continue;
 		}
-		op = (!ent->old) ? OP_PROF_LOAD : OP_PROF_REPL;
+		op = (!tmp->old) ? OP_PROF_LOAD : OP_PROF_REPL;
 		audit_policy(profile, op, ns_name,
 			     tmp->new->base.hname, info, error);
 	}
