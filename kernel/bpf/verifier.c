@@ -3695,6 +3695,7 @@ static int fixup_bpf_calls(struct bpf_verifier_env *env)
 				 * in the program array.
 				 */
 				prog->cb_access = 1;
+				prog->xdp_adjust_head = 1;
 
 			/* mark bpf_tail_call as different opcode to avoid
 			 * conditional branch in the interpeter for every normal
