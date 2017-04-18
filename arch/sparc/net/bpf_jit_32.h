@@ -39,7 +39,7 @@
 #define r_TMP2		G2
 #define r_OFF		G3
 
-/* assembly code in arch/sparc/net/bpf_jit_asm.S */
+/* assembly code in arch/sparc/net/bpf_jit_asm_32.S */
 extern u32 bpf_jit_load_word[];
 extern u32 bpf_jit_load_half[];
 extern u32 bpf_jit_load_byte[];
