@@ -8,7 +8,7 @@
 #include <asm/cacheflush.h>
 #include <asm/ptrace.h>
 
-#include "bpf_jit.h"
+#include "bpf_jit_32.h"
 
 static inline bool is_simm13(unsigned int value)
 {
