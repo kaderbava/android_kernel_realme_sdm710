@@ -3423,6 +3423,14 @@ static inline int get_nr_threads(struct task_struct *tsk)
 	return tsk->signal->nr_threads;
 }
 
+static inline
+struct pid *task_pid_type(struct task_struct *task, enum pid_type type)
+{
+	if (type != PIDTYPE_PID)
+		task = task->group_leader;
+	return task->pids[type].pid;
+}
+
 static inline bool thread_group_leader(struct task_struct *p)
 {
 	return p->exit_signal >= 0;
