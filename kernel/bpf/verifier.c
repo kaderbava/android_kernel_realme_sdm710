@@ -3037,6 +3037,12 @@ static bool states_equal(struct bpf_verifier_env *env,
 		    rold->map_ptr == rcur->map_ptr)
 			continue;
 
+		/* Don't care about the reg->id in this case. */
+		if (rold->type == PTR_TO_MAP_VALUE_OR_NULL &&
+		    rcur->type == PTR_TO_MAP_VALUE_OR_NULL &&
+		    rold->map_ptr == rcur->map_ptr)
+			continue;
+
 		if (rold->type == PTR_TO_PACKET && rcur->type == PTR_TO_PACKET &&
 		    compare_ptrs_to_packet(rold, rcur))
 			continue;
