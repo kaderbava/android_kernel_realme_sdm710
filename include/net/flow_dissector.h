@@ -175,6 +175,16 @@ struct flow_dissector_key_tcp {
 	__be16 flags;
 };
 
+/**
+ * struct flow_dissector_key_ip:
+ * @tos: tos
+ * @ttl: ttl
+ */
+struct flow_dissector_key_ip {
+	__u8	tos;
+	__u8	ttl;
+};
+
 enum flow_dissector_key_id {
 	FLOW_DISSECTOR_KEY_CONTROL, /* struct flow_dissector_key_control */
 	FLOW_DISSECTOR_KEY_BASIC, /* struct flow_dissector_key_basic */
@@ -196,6 +206,7 @@ enum flow_dissector_key_id {
 	FLOW_DISSECTOR_KEY_ENC_PORTS, /* struct flow_dissector_key_ports */
 	FLOW_DISSECTOR_KEY_MPLS, /* struct flow_dissector_key_mpls */
 	FLOW_DISSECTOR_KEY_TCP, /* struct flow_dissector_key_tcp */
+	FLOW_DISSECTOR_KEY_IP, /* struct flow_dissector_key_ip */
 
 	FLOW_DISSECTOR_KEY_MAX,
 };
