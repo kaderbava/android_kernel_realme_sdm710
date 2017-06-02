@@ -395,20 +395,6 @@ fail:
 /* TODO: profile accounting - setup in remove */
 
 /**
- * __find_child - find a profile on @head list with a name matching @name
- * @head: list to search  (NOT NULL)
- * @name: name of profile (NOT NULL)
- *
- * Requires: rcu_read_lock be held
- *
- * Returns: unrefcounted profile ptr, or NULL if not found
- */
-static struct aa_profile *__find_child(struct list_head *head, const char *name)
-{
-	return (struct aa_profile *)__policy_find(head, name);
-}
-
-/**
  * __strn_find_child - find a profile on @head list using substring of @name
  * @head: list to search  (NOT NULL)
  * @name: name of profile (NOT NULL)
@@ -422,6 +408,20 @@ static struct aa_profile *__strn_find_child(struct list_head *head,
 					    const char *name, int len)
 {
 	return (struct aa_profile *)__policy_strn_find(head, name, len);
+}
+
+/**
+ * __find_child - find a profile on @head list with a name matching @name
+ * @head: list to search  (NOT NULL)
+ * @name: name of profile (NOT NULL)
+ *
+ * Requires: rcu_read_lock be held
+ *
+ * Returns: unrefcounted profile ptr, or NULL if not found
+ */
+static struct aa_profile *__find_child(struct list_head *head, const char *name)
+{
+	return __strn_find_child(head, name, strlen(name));
 }
 
 /**
