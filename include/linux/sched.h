@@ -841,7 +841,6 @@ struct signal_struct {
 #endif
 
 	/* PID/PID hash table linkage. */
-	struct pid *leader_pid;
 	struct pid *pids[PIDTYPE_MAX];
 
 #ifdef CONFIG_NO_HZ_FULL
@@ -2360,7 +2359,7 @@ static inline struct pid *task_pid(struct task_struct *task)
 
 static inline struct pid *task_tgid(struct task_struct *task)
 {
-	return task->signal->leader_pid;
+	return task->signal->pids[PIDTYPE_TGID];
 }
 
 /*
@@ -2445,12 +2444,12 @@ static inline pid_t task_session_vnr(struct task_struct *tsk)
 
 static inline pid_t task_tgid_nr_ns(struct task_struct *tsk, struct pid_namespace *ns)
 {
-	return __task_pid_nr_ns(tsk, __PIDTYPE_TGID, ns);
+	return __task_pid_nr_ns(tsk, PIDTYPE_TGID, ns);
 }
 
 static inline pid_t task_tgid_vnr(struct task_struct *tsk)
 {
-	return __task_pid_nr_ns(tsk, __PIDTYPE_TGID, NULL);
+	return __task_pid_nr_ns(tsk, PIDTYPE_TGID, NULL);
 }
 
 static inline pid_t task_ppid_nr_ns(const struct task_struct *tsk, struct pid_namespace *ns)
@@ -3460,7 +3459,7 @@ static inline bool thread_group_leader(struct task_struct *p)
  */
 static inline bool has_group_leader_pid(struct task_struct *p)
 {
-	return task_pid(p) == p->signal->leader_pid;
+	return task_pid(p) == task_tgid(p);
 }
 
 static inline
