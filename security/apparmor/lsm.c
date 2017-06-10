@@ -583,11 +583,16 @@ static int apparmor_setprocattr(struct task_struct *task, char *name,
 			error = aa_change_profile(args, AA_CHANGE_NOFLAGS);
 		} else if (strcmp(command, "permprofile") == 0) {
 			error = aa_change_profile(args, AA_CHANGE_TEST);
+		} else if (strcmp(command, "stack") == 0) {
+			error = aa_change_profile(args, AA_CHANGE_STACK);
 		} else
 			goto fail;
 	} else if (strcmp(name, "exec") == 0) {
 		if (strcmp(command, "exec") == 0)
 			error = aa_change_profile(args, AA_CHANGE_ONEXEC);
+		else if (strcmp(command, "stack") == 0)
+			error = aa_change_profile(args, (AA_CHANGE_ONEXEC |
+							 AA_CHANGE_STACK));
 		else
 			goto fail;
 	} else
