@@ -95,4 +95,6 @@
 
 #define SCM_TIMESTAMPING_PKTINFO	58
 
+#define SO_PEERGROUPS		0x4034
+
 #endif /* _UAPI_ASM_SOCKET_H */
