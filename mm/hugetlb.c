@@ -3818,7 +3818,7 @@ retry:
 		 */
 		if (userfaultfd_missing(vma)) {
 			u32 hash;
-			struct vm_fault vmf = {
+			struct fault_env fe = {
 				.vma = vma,
 				.address = address,
 				.flags = flags,
@@ -3836,10 +3836,9 @@ retry:
 			 * handling userfault.  Reacquire after handling
 			 * fault to make calling code simpler.
 			 */
-			hash = hugetlb_fault_mutex_hash(h, mm, vma, mapping,
-							idx, address);
+			hash = hugetlb_fault_mutex_hash(h, mapping, idx);
 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
-			ret = handle_userfault(&vmf, VM_UFFD_MISSING);
+			ret = handle_userfault(&fe, VM_UFFD_MISSING);
 			mutex_lock(&hugetlb_fault_mutex_table[hash]);
 			goto out;
 		}
