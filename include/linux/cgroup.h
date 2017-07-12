@@ -693,6 +693,10 @@ static inline void cgroup_kthread_ready(void)
 	current->no_cgroup_migration = 0;
 }
 
+static inline union kernfs_node_id *cgroup_get_kernfs_id(struct cgroup *cgrp)
+{
+	return &cgrp->kn->id;
+}
 #else /* !CONFIG_CGROUPS */
 
 struct cgroup_subsys_state;
@@ -716,6 +720,10 @@ static inline int cgroup_init_early(void) { return 0; }
 static inline int cgroup_init(void) { return 0; }
 static inline void cgroup_init_kthreadd(void) {}
 static inline void cgroup_kthread_ready(void) {}
+static inline union kernfs_node_id *cgroup_get_kernfs_id(struct cgroup *cgrp)
+{
+	return NULL;
+}
 
 static inline struct cgroup *cgroup_parent(struct cgroup *cgrp)
 {
