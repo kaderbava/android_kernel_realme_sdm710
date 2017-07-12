@@ -215,10 +215,8 @@ static struct throtl_data *sq_to_td(struct throtl_service_queue *sq)
 	if (likely(!blk_trace_note_message_enabled(__td->queue)))	\
 		break;							\
 	if ((__tg)) {							\
-		char __pbuf[128];					\
-									\
-		blkg_path(tg_to_blkg(__tg), __pbuf, sizeof(__pbuf));	\
-		blk_add_trace_msg(__td->queue, "throtl %s " fmt, __pbuf, ##args); \
+		blk_add_cgroup_trace_msg(__td->queue,			\
+			tg_to_blkg(__tg)->blkcg, "throtl " fmt, ##args);\
 	} else {							\
 		blk_add_trace_msg(__td->queue, "throtl " fmt, ##args);	\
 	}								\
