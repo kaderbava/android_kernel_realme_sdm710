@@ -553,11 +553,6 @@
  *
  * Security hooks for task operations.
  *
- * @task_create:
- *	Check permission before creating a child process.  See the clone(2)
- *	manual page for definitions of the @clone_flags.
- *	@clone_flags contains the flags indicating what should be shared.
- *	Return 0 if permission is granted.
  * @task_alloc:
  *	@task task being allocated.
  *	@clone_flags contains the flags indicating what should be shared.
