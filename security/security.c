@@ -1386,11 +1386,6 @@ int security_file_open(struct file *file)
 	return fsnotify_perm(file, MAY_OPEN);
 }
 
-int security_task_create(unsigned long clone_flags)
-{
-	return call_int_hook(task_create, 0, clone_flags);
-}
-
 int security_task_alloc(struct task_struct *task, unsigned long clone_flags)
 {
 	return call_int_hook(task_alloc, 0, task, clone_flags);
