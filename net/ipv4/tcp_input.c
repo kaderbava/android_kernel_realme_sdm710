@@ -5532,8 +5532,9 @@ discard:
  *	tcp_data_queue when everything is OK.
  */
 void tcp_rcv_established(struct sock *sk, struct sk_buff *skb,
-			 const struct tcphdr *th, unsigned int len)
+			 const struct tcphdr *th)
 {
+	unsigned int len = skb->len;
 	struct tcp_sock *tp = tcp_sk(sk);
 
 	if (unlikely(!rcu_access_pointer(sk->sk_rx_dst)))
