@@ -1013,6 +1013,20 @@ set_rcvbuf:
 		if (val == 1)
 			dst_negative_advice(sk);
 		break;
+
+	case SO_ZEROCOPY:
+		if (sk->sk_family != PF_INET && sk->sk_family != PF_INET6)
+			ret = -ENOTSUPP;
+		else if (sk->sk_protocol != IPPROTO_TCP)
+			ret = -ENOTSUPP;
+		else if (sk->sk_state != TCP_CLOSE)
+			ret = -EBUSY;
+		else if (val < 0 || val > 1)
+			ret = -EINVAL;
+		else
+			sock_valbool_flag(sk, SOCK_ZEROCOPY, valbool);
+		break;
+
 	default:
 		ret = -ENOPROTOOPT;
 		break;
@@ -1344,6 +1358,11 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
 			return -EINVAL;
 		v.val64 = sock_gen_cookie(sk);
 		break;
+
+	case SO_ZEROCOPY:
+		v.val = sock_flag(sk, SOCK_ZEROCOPY);
+		break;
+
 	default:
 		/* We implement the SO_SNDLOWAT etc to not be settable
 		 * (1003.1g 7).
