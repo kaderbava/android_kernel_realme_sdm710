@@ -1170,6 +1170,8 @@ void sock_zerocopy_callback(struct ubuf_info *uarg, bool success)
 	u32 lo, hi;
 	u16 len;
 
+	mm_unaccount_pinned_pages(&uarg->mmp);
+
 	/* if !len, there was only 1 call, and it was aborted
 	 * so do not queue a completion notification
 	 */
@@ -1210,8 +1212,6 @@ EXPORT_SYMBOL_GPL(sock_zerocopy_callback);
 void sock_zerocopy_put(struct ubuf_info *uarg)
 {
 	if (uarg && atomic_dec_and_test(&uarg->refcnt)) {
-		mm_unaccount_pinned_pages(&uarg->mmp);
-
 		if (uarg->callback)
 			uarg->callback(uarg, uarg->zerocopy);
 		else
