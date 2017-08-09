@@ -123,6 +123,8 @@ static u32 WDISP10(u32 off)
 
 #define BA		(BRANCH | CONDA)
 #define BG		(BRANCH | CONDG)
+#define BL		(BRANCH | CONDL)
+#define BLE		(BRANCH | CONDLE)
 #define BGU		(BRANCH | CONDGU)
 #define BLEU		(BRANCH | CONDLEU)
 #define BGE		(BRANCH | CONDGE)
@@ -474,8 +476,14 @@ static int emit_compare_and_branch(const u8 code, const u8 dst, u8 src,
 		case BPF_JGT:
 			br_opcode = BGU;
 			break;
+		case BPF_JLT:
+			br_opcode = BLU;
+			break;
 		case BPF_JGE:
 			br_opcode = BGEU;
+			break;
+		case BPF_JLE:
+			br_opcode = BLEU;
 			break;
 		case BPF_JSET:
 		case BPF_JNE:
@@ -484,8 +492,14 @@ static int emit_compare_and_branch(const u8 code, const u8 dst, u8 src,
 		case BPF_JSGT:
 			br_opcode = BG;
 			break;
+		case BPF_JSLT:
+			br_opcode = BL;
+			break;
 		case BPF_JSGE:
 			br_opcode = BGE;
+			break;
+		case BPF_JSLE:
+			br_opcode = BLE;
 			break;
 		default:
 			/* Make sure we dont leak kernel information to the
@@ -505,8 +519,14 @@ static int emit_compare_and_branch(const u8 code, const u8 dst, u8 src,
 		case BPF_JGT:
 			cbcond_opcode = CBCONDGU;
 			break;
+		case BPF_JLT:
+			cbcond_opcode = CBCONDLU;
+			break;
 		case BPF_JGE:
 			cbcond_opcode = CBCONDGEU;
+			break;
+		case BPF_JLE:
+			cbcond_opcode = CBCONDLEU;
 			break;
 		case BPF_JNE:
 			cbcond_opcode = CBCONDNE;
@@ -514,8 +534,14 @@ static int emit_compare_and_branch(const u8 code, const u8 dst, u8 src,
 		case BPF_JSGT:
 			cbcond_opcode = CBCONDG;
 			break;
+		case BPF_JSLT:
+			cbcond_opcode = CBCONDL;
+			break;
 		case BPF_JSGE:
 			cbcond_opcode = CBCONDGE;
+			break;
+		case BPF_JSLE:
+			cbcond_opcode = CBCONDLE;
 			break;
 		default:
 			/* Make sure we dont leak kernel information to the
@@ -935,10 +961,14 @@ static int build_insn(const struct bpf_insn *insn, struct jit_ctx *ctx)
 	/* IF (dst COND src) JUMP off */
 	case BPF_JMP | BPF_JEQ | BPF_X:
 	case BPF_JMP | BPF_JGT | BPF_X:
+	case BPF_JMP | BPF_JLT | BPF_X:
 	case BPF_JMP | BPF_JGE | BPF_X:
+	case BPF_JMP | BPF_JLE | BPF_X:
 	case BPF_JMP | BPF_JNE | BPF_X:
 	case BPF_JMP | BPF_JSGT | BPF_X:
+	case BPF_JMP | BPF_JSLT | BPF_X:
 	case BPF_JMP | BPF_JSGE | BPF_X:
+	case BPF_JMP | BPF_JSLE | BPF_X:
 	case BPF_JMP | BPF_JSET | BPF_X: {
 		int err;
 
@@ -950,10 +980,14 @@ static int build_insn(const struct bpf_insn *insn, struct jit_ctx *ctx)
 	/* IF (dst COND imm) JUMP off */
 	case BPF_JMP | BPF_JEQ | BPF_K:
 	case BPF_JMP | BPF_JGT | BPF_K:
+	case BPF_JMP | BPF_JLT | BPF_K:
 	case BPF_JMP | BPF_JGE | BPF_K:
+	case BPF_JMP | BPF_JLE | BPF_K:
 	case BPF_JMP | BPF_JNE | BPF_K:
 	case BPF_JMP | BPF_JSGT | BPF_K:
+	case BPF_JMP | BPF_JSLT | BPF_K:
 	case BPF_JMP | BPF_JSGE | BPF_K:
+	case BPF_JMP | BPF_JSLE | BPF_K:
 	case BPF_JMP | BPF_JSET | BPF_K: {
 		int err;
 
