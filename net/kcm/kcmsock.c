@@ -1380,7 +1380,11 @@ static int kcm_attach(struct socket *sock, struct socket *csock,
 	struct kcm_psock *psock = NULL, *tpsock;
 	struct list_head *head;
 	int index = 0;
-	struct strp_callbacks cb;
+	static const struct strp_callbacks cb = {
+		.rcv_msg = kcm_rcv_strparser,
+		.parse_msg = kcm_parse_func_strparser,
+		.read_sock_done = kcm_read_sock_done,
+	};
 	int err = 0;
 
 	csk = csock->sk;
@@ -1411,11 +1415,6 @@ static int kcm_attach(struct socket *sock, struct socket *csock,
 	psock->mux = mux;
 	psock->sk = csk;
 	psock->bpf_prog = prog;
-
-	cb.rcv_msg = kcm_rcv_strparser;
-	cb.abort_parser = NULL;
-	cb.parse_msg = kcm_parse_func_strparser;
-	cb.read_sock_done = kcm_read_sock_done;
 
 	err = strp_init(&psock->strp, csk, &cb);
 	if (err) {
