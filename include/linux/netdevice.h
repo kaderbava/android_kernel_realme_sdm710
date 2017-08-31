@@ -1146,8 +1146,8 @@ struct netdev_xdp {
  *	This function is used to submit a XDP packet for transmit on a
  *	netdevice.
  * void (*ndo_xdp_flush)(struct net_device *dev);
- *	This function is used to inform the driver to flush a paticular
- *	xpd tx queue. Must be called on same CPU as xdp_xmit.
+ *	This function is used to inform the driver to flush a particular
+ *	xdp tx queue. Must be called on same CPU as xdp_xmit.
  */
 struct net_device_ops {
 	int			(*ndo_init)(struct net_device *dev);
