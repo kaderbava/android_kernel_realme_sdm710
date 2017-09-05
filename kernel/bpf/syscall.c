@@ -365,7 +365,8 @@ static int map_create(union bpf_attr *attr)
 		return -EINVAL;
 
 	if (numa_node != NUMA_NO_NODE &&
-	    (numa_node >= nr_node_ids || !node_online(numa_node)))
+	    ((unsigned int)numa_node >= nr_node_ids ||
+	     !node_online(numa_node)))
 		return -EINVAL;
 
 	f_flags = bpf_get_file_flag(attr->map_flags);
