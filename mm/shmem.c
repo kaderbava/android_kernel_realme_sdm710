@@ -2265,7 +2265,6 @@ int shmem_mcopy_atomic_pte(struct mm_struct *dst_mm,
 {
 	struct inode *inode = file_inode(dst_vma->vm_file);
 	struct shmem_inode_info *info = SHMEM_I(inode);
-	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
 	struct address_space *mapping = inode->i_mapping;
 	gfp_t gfp = mapping_gfp_mask(mapping);
 	pgoff_t pgoff = linear_page_index(dst_vma, dst_addr);
@@ -2277,19 +2276,13 @@ int shmem_mcopy_atomic_pte(struct mm_struct *dst_mm,
 	int ret;
 
 	ret = -ENOMEM;
-	if (shmem_acct_block(info->flags, 1))
+	if (!shmem_inode_acct_block(inode, 1))
 		goto out;
-	if (sbinfo->max_blocks) {
-		if (percpu_counter_compare(&sbinfo->used_blocks,
-					   sbinfo->max_blocks) >= 0)
-			goto out_unacct_blocks;
-		percpu_counter_inc(&sbinfo->used_blocks);
-	}
 
 	if (!*pagep) {
 		page = shmem_alloc_page(gfp, info, pgoff);
 		if (!page)
-			goto out_dec_used_blocks;
+			goto out_unacct_blocks;
 
 		page_kaddr = kmap_atomic(page);
 		ret = copy_from_user(page_kaddr, (const void __user *)src_addr,
@@ -2299,9 +2292,7 @@ int shmem_mcopy_atomic_pte(struct mm_struct *dst_mm,
 		/* fallback to copy_from_user outside mmap_sem */
 		if (unlikely(ret)) {
 			*pagep = page;
-			if (sbinfo->max_blocks)
-				percpu_counter_add(&sbinfo->used_blocks, -1);
-			shmem_unacct_blocks(info->flags, 1);
+			shmem_inode_unacct_blocks(inode, 1);
 			/* don't free the page */
 			return -EFAULT;
 		}
@@ -2364,11 +2355,8 @@ out_release_uncharge:
 out_release:
 	unlock_page(page);
 	put_page(page);
-out_dec_used_blocks:
-	if (sbinfo->max_blocks)
-		percpu_counter_add(&sbinfo->used_blocks, -1);
 out_unacct_blocks:
-	shmem_unacct_blocks(info->flags, 1);
+	shmem_inode_unacct_blocks(inode, 1);
 	goto out;
 }
 
