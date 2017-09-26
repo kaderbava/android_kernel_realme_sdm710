@@ -2350,7 +2350,7 @@ static inline struct pid *task_pid(struct task_struct *task)
 
 static inline struct pid *task_tgid(struct task_struct *task)
 {
-	return task->group_leader->pids[PIDTYPE_PID].pid;
+	return task->signal->leader_pid;
 }
 
 /*

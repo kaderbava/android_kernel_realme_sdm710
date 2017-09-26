@@ -39,6 +39,7 @@
 #include <linux/proc_ns.h>
 #include <linux/proc_fs.h>
 #include <linux/anon_inodes.h>
+#include <linux/sched.h>
 
 #define pid_hashfn(nr, ns)	\
 	hash_long((unsigned long)nr + (unsigned long)ns, pidhash_shift)
@@ -531,12 +532,14 @@ pid_t __task_pid_nr_ns(struct task_struct *task, enum pid_type type,
 	if (!ns)
 		ns = task_active_pid_ns(current);
 	if (likely(pid_alive(task))) {
-		if (type != PIDTYPE_PID) {
-			if (type == __PIDTYPE_TGID)
-				type = PIDTYPE_PID;
-			task = task->group_leader;
-		}
-		nr = pid_nr_ns(rcu_dereference(task->pids[type].pid), ns);
+		struct pid *pid;
+		if (type == PIDTYPE_PID)
+			pid = task_pid(task);
+		else if (type == __PIDTYPE_TGID)
+			pid = task_tgid(task);
+		else
+			pid = rcu_dereference(task->group_leader->pids[type].pid);
+		nr = pid_nr_ns(pid, ns);
 	}
 	rcu_read_unlock();
 
