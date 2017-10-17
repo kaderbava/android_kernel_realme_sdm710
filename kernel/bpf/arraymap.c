@@ -135,9 +135,7 @@ static struct bpf_map *array_map_alloc(union bpf_attr *attr)
 	array->map.pages = cost;
 	array->elem_size = elem_size;
 
-	if (percpu &&
-	    (elem_size > PCPU_MIN_UNIT_SIZE ||
-	     bpf_array_alloc_percpu(array))) {
+	if (percpu && bpf_array_alloc_percpu(array)) {
 		bpf_map_area_free(array);
 		return ERR_PTR(-ENOMEM);
 	}
