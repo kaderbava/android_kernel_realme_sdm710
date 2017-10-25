@@ -269,6 +269,7 @@
 #include <linux/err.h>
 #include <linux/time.h>
 #include <linux/slab.h>
+#include <linux/static_key.h>
 
 #include <net/icmp.h>
 #include <net/inet_common.h>
@@ -311,6 +312,11 @@ EXPORT_SYMBOL(sysctl_tcp_use_userconfig);
 int sysctl_tcp_ts_control[2] __read_mostly = {0,0};
 EXPORT_SYMBOL(sysctl_tcp_ts_control);
 #endif /* VENDOR_EDIT */
+
+#if IS_ENABLED(CONFIG_SMC)
+DEFINE_STATIC_KEY_FALSE(tcp_have_smc);
+EXPORT_SYMBOL(tcp_have_smc);
+#endif
 
 /*
  * Current number of TCP sockets.
