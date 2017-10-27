@@ -748,6 +748,12 @@ struct xdp_md {
 	__u32 data_end;
 };
 
+enum sk_action {
+	SK_DROP = 0,
+	SK_PASS,
+	SK_REDIRECT,
+};
+
 #define BPF_TAG_SIZE	8
 
 struct bpf_prog_info {
