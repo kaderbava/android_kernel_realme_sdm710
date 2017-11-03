@@ -219,8 +219,13 @@ struct tcp_sock {
 	/* Information of the most recently (s)acked skb */
 	struct tcp_rack {
 		struct skb_mstamp mstamp; /* (Re)sent time of the skb */
-		u8 advanced; /* mstamp advanced since last lost marking */
-		u8 reord;    /* reordering detected */
+		u32 last_delivered; /* tp->delivered at last reo_wnd adj */
+		u8 reo_wnd_steps;   /* Allowed reordering window */
+#define TCP_RACK_RECOVERY_THRESH 16
+		u8 reo_wnd_persist:5, /* No. of recovery since last adj */
+		   dsack_seen:1, /* Whether DSACK seen after last adj */
+		   advanced:1,	 /* mstamp advanced since last lost marking */
+		   reord:1;	 /* reordering detected */
 	} rack;
 	u16	advmss;		/* Advertised MSS			*/
 	u8	tlp_retrans:1,	/* TLP is a retransmission */
