@@ -500,7 +500,7 @@ struct aa_profile *aa_new_null_profile(struct aa_profile *parent, bool hat,
 {
 	struct aa_profile *p, *profile;
 	const char *bname;
-	char *name;
+	char *name = NULL;
 
 	AA_BUG(!parent);
 
@@ -560,6 +560,7 @@ out:
 	return profile;
 
 fail:
+	kfree(name);
 	aa_free_profile(profile);
 	return NULL;
 }
