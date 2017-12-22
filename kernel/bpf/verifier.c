@@ -5286,20 +5286,19 @@ static int check_alu_op(struct bpf_verifier_env *env, struct bpf_insn *insn)
 				coerce_reg_to_size(dst_reg, 4);
 			}
 		} else {
-			/* case: R = imm
+		/* case: R = imm
 			 * remember the value we stored into this reg
 			 */
-			u64 imm;
-
-			if (BPF_CLASS(insn->code) == BPF_ALU64)
-				imm = insn->imm;
-			else
-				imm = (u32)insn->imm;
-
 			/* clear any state __mark_reg_known doesn't set */
 			mark_reg_unknown(env, regs, insn->dst_reg);
 			regs[insn->dst_reg].type = SCALAR_VALUE;
-			__mark_reg_known(regs + insn->dst_reg, imm);
+			if (BPF_CLASS(insn->code) == BPF_ALU64) {
+				__mark_reg_known(regs + insn->dst_reg,
+						 insn->imm);
+			} else {
+				__mark_reg_known(regs + insn->dst_reg,
+						 (u32)insn->imm);
+			}
 		}
 
 	} else if (opcode > BPF_END) {
