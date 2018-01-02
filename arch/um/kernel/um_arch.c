@@ -52,7 +52,7 @@ struct cpuinfo_um boot_cpu_data = {
 
 union thread_union cpu0_irqstack
 	__attribute__((__section__(".data..init_irqstack"))) =
-		{ INIT_THREAD_INFO(init_task) };
+		{ .thread_info = INIT_THREAD_INFO(init_task) };
 
 unsigned long thread_saved_pc(struct task_struct *task)
 {
