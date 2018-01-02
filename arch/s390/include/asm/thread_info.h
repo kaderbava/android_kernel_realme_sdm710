@@ -53,7 +53,6 @@ struct thread_info {
 }
 
 #define init_thread_info	(init_thread_union.thread_info)
-#define init_stack		(init_thread_union.stack)
 
 /* how to get the thread information struct from C */
 static inline struct thread_info *current_thread_info(void)

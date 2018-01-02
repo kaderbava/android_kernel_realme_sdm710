@@ -55,8 +55,6 @@ struct thread_info {
 	.addr_limit	= KERNEL_DS,			\
 }
 
-#define init_thread_info	(init_thread_union.thread_info)
-
 #endif /* !__ASSEMBLY__ */
 
 /*
