@@ -20,6 +20,7 @@
 #include <linux/export.h>
 #include <linux/extable.h>	/* only as arch move module.h -> extable.h */
 #include <linux/rbtree_latch.h>
+#include <linux/error-injection.h>
 #include <linux/cfi.h>
 
 #include <linux/percpu.h>
@@ -489,8 +490,8 @@ struct module {
 #endif
 
 #ifdef CONFIG_FUNCTION_ERROR_INJECTION
+	struct error_injection_entry *ei_funcs;
 	unsigned int num_ei_funcs;
-	unsigned long *ei_funcs;
 #endif
 
 } ____cacheline_aligned;
