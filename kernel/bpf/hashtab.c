@@ -240,7 +240,6 @@ static struct bpf_map *htab_map_alloc(union bpf_attr *attr)
 	 */
 	bool percpu_lru = (attr->map_flags & BPF_F_NO_COMMON_LRU);
 	bool prealloc = !(attr->map_flags & BPF_F_NO_PREALLOC);
-	int numa_node = bpf_map_attr_numa_node(attr);
 	struct bpf_htab *htab;
 	int err, i;
 	u64 cost;
@@ -273,13 +272,7 @@ static struct bpf_map *htab_map_alloc(union bpf_attr *attr)
 	if (!htab)
 		return ERR_PTR(-ENOMEM);
 
-	/* mandatory map attributes */
-	htab->map.map_type = attr->map_type;
-	htab->map.key_size = attr->key_size;
-	htab->map.value_size = attr->value_size;
-	htab->map.max_entries = attr->max_entries;
-	htab->map.map_flags = attr->map_flags;
-	htab->map.numa_node = numa_node;
+	bpf_map_init_from_attr(&htab->map, attr);
 
 	/* check sanity of attributes.
 	 * value_size == 0 may be allowed in the future to use map as a set
