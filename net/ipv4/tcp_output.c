@@ -2952,6 +2952,10 @@ int __tcp_retransmit_skb(struct sock *sk, struct sk_buff *skb, int segs)
 	oppo_handle_retransmit(sk, -1); // in this function, tcp_transmit_skb is called again.
 	//#endif /* VENDOR_EDIT */
 
+	if (BPF_SOCK_OPS_TEST_FLAG(tp, BPF_SOCK_OPS_RETRANS_CB_FLAG))
+		tcp_call_bpf_3arg(sk, BPF_SOCK_OPS_RETRANS_CB,
+				  TCP_SKB_CB(skb)->seq, segs, err);
+
 	if (likely(!err)) {
 		segs = tcp_skb_pcount(skb);
 
