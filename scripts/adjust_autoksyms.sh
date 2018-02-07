@@ -59,7 +59,10 @@ cat > "$new_ksyms_file" << EOT
  */
 
 EOT
-sed -ns -e '3{s/ /\n/g;/^$/!p;}' "$MODVERDIR"/*.mod | sort -u |
+[ "$(ls -A "$MODVERDIR")" ] &&
+for mod in "$MODVERDIR"/*.mod; do
+	sed -n -e '3{s/ /\n/g;/^$/!p;}' "$mod"
+done | sort -u |
 while read sym; do
 	if [ -n "$CONFIG_HAVE_UNDERSCORE_SYMBOL_PREFIX" ]; then
 		sym="${sym#_}"
