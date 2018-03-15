@@ -263,6 +263,7 @@ extern struct timespec ns_to_timespec(const s64 nsec);
  * Returns the timeval representation of the nsec parameter.
  */
 extern struct timeval ns_to_timeval(const s64 nsec);
+extern struct __kernel_old_timeval ns_to_kernel_old_timeval(s64 nsec);
 
 /**
  * timespec_add_ns - Adds nanoseconds to a timespec
