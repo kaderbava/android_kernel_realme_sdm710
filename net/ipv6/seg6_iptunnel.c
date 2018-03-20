@@ -94,7 +94,8 @@ static void set_tun_src(struct net *net, struct net_device *dev,
 /* encapsulate an IPv6 packet within an outer IPv6 header with a given SRH */
 static int seg6_do_srh_encap(struct sk_buff *skb, struct ipv6_sr_hdr *osrh)
 {
-	struct net *net = dev_net(skb_dst(skb)->dev);
+	struct dst_entry *dst = skb_dst(skb);
+	struct net *net = dev_net(dst->dev);
 	struct ipv6hdr *hdr, *inner_hdr;
 	struct ipv6_sr_hdr *isrh;
 	int hdrlen, tot_len, err;
@@ -128,7 +129,7 @@ static int seg6_do_srh_encap(struct sk_buff *skb, struct ipv6_sr_hdr *osrh)
 	isrh->nexthdr = NEXTHDR_IPV6;
 
 	hdr->daddr = isrh->segments[isrh->first_segment];
-	set_tun_src(net, skb->dev, &hdr->daddr, &hdr->saddr);
+	set_tun_src(net, ip6_dst_idev(dst)->dev, &hdr->daddr, &hdr->saddr);
 
 	skb_postpush_rcsum(skb, hdr, tot_len);
 
