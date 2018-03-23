@@ -262,7 +262,7 @@ static void sem_rcu_free(struct rcu_head *head)
 	struct ipc_rcu *p = container_of(head, struct ipc_rcu, rcu);
 	struct sem_array *sma = ipc_rcu_to_struct(p);
 
-	security_sem_free(sma);
+	security_sem_free(&sma->sem_perm);
 	ipc_rcu_free(head);
 }
 
@@ -539,7 +539,7 @@ static int newary(struct ipc_namespace *ns, struct ipc_params *params)
 	sma->sem_perm.key = key;
 
 	sma->sem_perm.security = NULL;
-	retval = security_sem_alloc(sma);
+	retval = security_sem_alloc(&sma->sem_perm);
 	if (retval) {
 		ipc_rcu_putref(sma, ipc_rcu_free);
 		return retval;
@@ -580,10 +580,7 @@ static int newary(struct ipc_namespace *ns, struct ipc_params *params)
  */
 static inline int sem_security(struct kern_ipc_perm *ipcp, int semflg)
 {
-	struct sem_array *sma;
-
-	sma = container_of(ipcp, struct sem_array, sem_perm);
-	return security_sem_associate(sma, semflg);
+	return security_sem_associate(ipcp, semflg);
 }
 
 /*
@@ -1226,7 +1223,7 @@ static int semctl_stat(struct ipc_namespace *ns, int semid,
 	if (ipcperms(ns, &sma->sem_perm, S_IRUGO))
 		goto out_unlock;
 
-	err = security_sem_semctl(sma, cmd);
+	err = security_sem_semctl(&sma->sem_perm, cmd);
 	if (err)
 		goto out_unlock;
 
@@ -1309,7 +1306,7 @@ static int semctl_setval(struct ipc_namespace *ns, int semid, int semnum,
 		return -EACCES;
 	}
 
-	err = security_sem_semctl(sma, SETVAL);
+	err = security_sem_semctl(&sma->sem_perm, SETVAL);
 	if (err) {
 		rcu_read_unlock();
 		return -EACCES;
@@ -1365,7 +1362,7 @@ static int semctl_main(struct ipc_namespace *ns, int semid, int semnum,
 	if (ipcperms(ns, &sma->sem_perm, cmd == SETALL ? S_IWUGO : S_IRUGO))
 		goto out_rcu_wakeup;
 
-	err = security_sem_semctl(sma, cmd);
+	err = security_sem_semctl(&sma->sem_perm, cmd);
 	if (err)
 		goto out_rcu_wakeup;
 
@@ -1554,7 +1551,7 @@ static int semctl_down(struct ipc_namespace *ns, int semid,
 
 	sma = container_of(ipcp, struct sem_array, sem_perm);
 
-	err = security_sem_semctl(sma, cmd);
+	err = security_sem_semctl(&sma->sem_perm, cmd);
 	if (err)
 		goto out_unlock1;
 
@@ -1984,7 +1981,7 @@ SYSCALL_DEFINE4(semtimedop, int, semid, struct sembuf __user *, tsops,
 	if (ipcperms(ns, &sma->sem_perm, alter ? S_IWUGO : S_IRUGO))
 		goto out_rcu_wakeup;
 
-	error = security_sem_semop(sma, sops, nsops, alter);
+	error = security_sem_semop(&sma->sem_perm, sops, nsops, alter);
 	if (error)
 		goto out_rcu_wakeup;
 
