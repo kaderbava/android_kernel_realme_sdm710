@@ -177,7 +177,7 @@ static void shm_rcu_free(struct rcu_head *head)
 	struct ipc_rcu *p = container_of(head, struct ipc_rcu, rcu);
 	struct shmid_kernel *shp = ipc_rcu_to_struct(p);
 
-	security_shm_free(shp);
+	security_shm_free(&shp->shm_perm);
 	ipc_rcu_free(head);
 }
 
@@ -651,7 +651,7 @@ static int newseg(struct ipc_namespace *ns, struct ipc_params *params)
 	shp->mlock_user = NULL;
 
 	shp->shm_perm.security = NULL;
-	error = security_shm_alloc(shp);
+	error = security_shm_alloc(&shp->shm_perm);
 	if (error) {
 		ipc_rcu_putref(shp, ipc_rcu_free);
 		return error;
@@ -737,10 +737,7 @@ no_file:
  */
 static inline int shm_security(struct kern_ipc_perm *ipcp, int shmflg)
 {
-	struct shmid_kernel *shp;
-
-	shp = container_of(ipcp, struct shmid_kernel, shm_perm);
-	return security_shm_associate(shp, shmflg);
+	return security_shm_associate(ipcp, shmflg);
 }
 
 /*
@@ -936,7 +933,7 @@ static int shmctl_down(struct ipc_namespace *ns, int shmid, int cmd,
 
 	shp = container_of(ipcp, struct shmid_kernel, shm_perm);
 
-	err = security_shm_shmctl(shp, cmd);
+	err = security_shm_shmctl(&shp->shm_perm, cmd);
 	if (err)
 		goto out_unlock1;
 
@@ -1034,7 +1031,7 @@ static int shmctl_stat(struct ipc_namespace *ns, int shmid,
 	if (ipcperms(ns, &shp->shm_perm, S_IRUGO))
 		goto out_unlock;
 
-		err = security_shm_shmctl(shp, cmd);
+	err = security_shm_shmctl(&shp->shm_perm, cmd);
 	if (err)
 		goto out_unlock;
 
@@ -1069,7 +1066,7 @@ static int shmctl_do_lock(struct ipc_namespace *ns, int shmid, int cmd)
 	}
 
 	audit_ipc_obj(&(shp->shm_perm));
-	err = security_shm_shmctl(shp, cmd);
+	err = security_shm_shmctl(&shp->shm_perm, cmd);
 	if (err)
 		goto out_unlock1;
 
@@ -1444,7 +1441,7 @@ long do_shmat(int shmid, char __user *shmaddr, int shmflg,
 	if (ipcperms(ns, &shp->shm_perm, acc_mode))
 		goto out_unlock;
 
-	err = security_shm_shmat(shp, shmaddr, shmflg);
+	err = security_shm_shmat(&shp->shm_perm, shmaddr, shmflg);
 	if (err)
 		goto out_unlock;
 
