@@ -39,6 +39,7 @@ This enables Berkeley Packet Filter Just in Time compiler.
 
 There are two flavors of JIT, the new eBPF JIT supported on:
   - x86_64
+  - x86_32
   - arm64
   - ppc64
   - sparc64
