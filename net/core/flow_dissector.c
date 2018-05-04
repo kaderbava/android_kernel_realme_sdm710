@@ -1197,7 +1197,7 @@ __u32 __skb_get_hash_flowi4(struct sk_buff *skb, const struct flowi4 *fl4)
 EXPORT_SYMBOL(__skb_get_hash_flowi4);
 
 u32 __skb_get_poff(const struct sk_buff *skb, void *data,
-		   const struct flow_keys *keys, int hlen)
+		   const struct flow_keys_basic *keys, int hlen)
 {
 	u32 poff = keys->control.thoff;
 
@@ -1258,9 +1258,9 @@ u32 __skb_get_poff(const struct sk_buff *skb, void *data,
  */
 u32 skb_get_poff(const struct sk_buff *skb)
 {
-	struct flow_keys keys;
+	struct flow_keys_basic keys;
 
-	if (!skb_flow_dissect_flow_keys(skb, &keys, 0))
+	if (!skb_flow_dissect_flow_keys_basic(skb, &keys, 0, 0, 0, 0, 0))
 		return 0;
 
 	return __skb_get_poff(skb, skb->data, &keys, skb_headlen(skb));
@@ -1363,7 +1363,7 @@ static const struct flow_dissector_key flow_keys_dissector_symmetric_keys[] = {
 	},
 };
 
-static const struct flow_dissector_key flow_keys_buf_dissector_keys[] = {
+static const struct flow_dissector_key flow_keys_basic_dissector_keys[] = {
 	{
 		.key_id = FLOW_DISSECTOR_KEY_CONTROL,
 		.offset = offsetof(struct flow_keys, control),
@@ -1377,7 +1377,8 @@ static const struct flow_dissector_key flow_keys_buf_dissector_keys[] = {
 struct flow_dissector flow_keys_dissector __read_mostly;
 EXPORT_SYMBOL(flow_keys_dissector);
 
-struct flow_dissector flow_keys_buf_dissector __read_mostly;
+struct flow_dissector flow_keys_basic_dissector __read_mostly;
+EXPORT_SYMBOL(flow_keys_basic_dissector);
 
 static int __init init_default_flow_dissectors(void)
 {
@@ -1387,9 +1388,9 @@ static int __init init_default_flow_dissectors(void)
 	skb_flow_dissector_init(&flow_keys_dissector_symmetric,
 				flow_keys_dissector_symmetric_keys,
 				ARRAY_SIZE(flow_keys_dissector_symmetric_keys));
-	skb_flow_dissector_init(&flow_keys_buf_dissector,
-				flow_keys_buf_dissector_keys,
-				ARRAY_SIZE(flow_keys_buf_dissector_keys));
+	skb_flow_dissector_init(&flow_keys_basic_dissector,
+				flow_keys_basic_dissector_keys,
+				ARRAY_SIZE(flow_keys_basic_dissector_keys));
 	return 0;
 }
 
