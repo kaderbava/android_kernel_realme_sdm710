@@ -1500,8 +1500,7 @@ void __audit_free(struct task_struct *tsk)
 void __audit_syscall_entry(int major, unsigned long a1, unsigned long a2,
 			   unsigned long a3, unsigned long a4)
 {
-	struct task_struct *tsk = current;
-	struct audit_context *context = tsk->audit_context;
+	struct audit_context *context = audit_context();
 	enum audit_state     state;
 
 	if (!context)
@@ -1523,7 +1522,8 @@ void __audit_syscall_entry(int major, unsigned long a1, unsigned long a2,
 	context->dummy = !audit_n_rules;
 	if (!context->dummy && state == AUDIT_BUILD_CONTEXT) {
 		context->prio = 0;
-		state = audit_filter_syscall(tsk, context, &audit_filter_list[AUDIT_FILTER_ENTRY]);
+		state = audit_filter_syscall(current, context,
+					     &audit_filter_list[AUDIT_FILTER_ENTRY]);
 	}
 	if (state == AUDIT_DISABLED)
 		return;
@@ -1556,12 +1556,12 @@ void __audit_syscall_exit(int success, long return_code)
 	else
 		success = AUDITSC_FAILURE;
 
-	context = audit_take_context(tsk, success, return_code);
+	context = audit_take_context(current, success, return_code);
 	if (!context)
 		return;
 
 	if (context->in_syscall && context->current_state == AUDIT_RECORD_CONTEXT)
-		audit_log_exit(context, tsk);
+		audit_log_exit(context, current);
 
 	context->in_syscall = 0;
 	context->prio = context->state == AUDIT_RECORD_CONTEXT ? ~0ULL : 0;
@@ -1595,7 +1595,7 @@ static inline void handle_one(const struct inode *inode)
 	int count;
 	if (likely(hlist_empty(&inode->i_fsnotify_marks)))
 		return;
-	context = current->audit_context;
+	context = audit_context();
 	p = context->trees;
 	count = context->tree_count;
 	rcu_read_lock();
@@ -1626,7 +1626,7 @@ static void handle_path(const struct dentry *dentry)
 	unsigned long seq;
 	int count;
 
-	context = current->audit_context;
+	context = audit_context();
 	p = context->trees;
 	count = context->tree_count;
 retry:
@@ -1708,7 +1708,7 @@ static struct audit_names *audit_alloc_name(struct audit_context *context,
 struct filename *
 __audit_reusename(const __user char *uptr)
 {
-	struct audit_context *context = current->audit_context;
+	struct audit_context *context = audit_context();
 	struct audit_names *n;
 
 	list_for_each_entry(n, &context->names_list, list) {
@@ -1731,7 +1731,7 @@ __audit_reusename(const __user char *uptr)
  */
 void __audit_getname(struct filename *name)
 {
-	struct audit_context *context = current->audit_context;
+	struct audit_context *context = audit_context();
 	struct audit_names *n;
 
 	if (!context->in_syscall)
@@ -1759,7 +1759,7 @@ void __audit_getname(struct filename *name)
 void __audit_inode(struct filename *name, const struct dentry *dentry,
 		   unsigned int flags)
 {
-	struct audit_context *context = current->audit_context;
+	struct audit_context *context = audit_context();
 	struct inode *inode = d_backing_inode(dentry);
 	struct audit_names *n;
 	bool parent = flags & AUDIT_INODE_PARENT;
@@ -1858,7 +1858,7 @@ void __audit_inode_child(struct inode *parent,
 			 const struct dentry *dentry,
 			 const unsigned char type)
 {
-	struct audit_context *context = current->audit_context;
+	struct audit_context *context = audit_context();
 	struct inode *inode = d_backing_inode(dentry);
 	const char *dname = dentry->d_name.name;
 	struct audit_names *n, *found_parent = NULL, *found_child = NULL;
@@ -2051,7 +2051,7 @@ out:
  */
 void __audit_mq_open(int oflag, umode_t mode, struct mq_attr *attr)
 {
-	struct audit_context *context = current->audit_context;
+	struct audit_context *context = audit_context();
 
 	if (attr)
 		memcpy(&context->mq_open.attr, attr, sizeof(struct mq_attr));
@@ -2075,7 +2075,7 @@ void __audit_mq_open(int oflag, umode_t mode, struct mq_attr *attr)
 void __audit_mq_sendrecv(mqd_t mqdes, size_t msg_len, unsigned int msg_prio,
 			const struct timespec *abs_timeout)
 {
-	struct audit_context *context = current->audit_context;
+	struct audit_context *context = audit_context();
 	struct timespec *p = &context->mq_sendrecv.abs_timeout;
 
 	if (abs_timeout)
@@ -2099,7 +2099,7 @@ void __audit_mq_sendrecv(mqd_t mqdes, size_t msg_len, unsigned int msg_prio,
 
 void __audit_mq_notify(mqd_t mqdes, const struct sigevent *notification)
 {
-	struct audit_context *context = current->audit_context;
+	struct audit_context *context = audit_context();
 
 	if (notification)
 		context->mq_notify.sigev_signo = notification->sigev_signo;
@@ -2118,7 +2118,7 @@ void __audit_mq_notify(mqd_t mqdes, const struct sigevent *notification)
  */
 void __audit_mq_getsetattr(mqd_t mqdes, struct mq_attr *mqstat)
 {
-	struct audit_context *context = current->audit_context;
+	struct audit_context *context = audit_context();
 	context->mq_getsetattr.mqdes = mqdes;
 	context->mq_getsetattr.mqstat = *mqstat;
 	context->type = AUDIT_MQ_GETSETATTR;
@@ -2131,7 +2131,7 @@ void __audit_mq_getsetattr(mqd_t mqdes, struct mq_attr *mqstat)
  */
 void __audit_ipc_obj(struct kern_ipc_perm *ipcp)
 {
-	struct audit_context *context = current->audit_context;
+	struct audit_context *context = audit_context();
 	context->ipc.uid = ipcp->uid;
 	context->ipc.gid = ipcp->gid;
 	context->ipc.mode = ipcp->mode;
@@ -2151,7 +2151,7 @@ void __audit_ipc_obj(struct kern_ipc_perm *ipcp)
  */
 void __audit_ipc_set_perm(unsigned long qbytes, uid_t uid, gid_t gid, umode_t mode)
 {
-	struct audit_context *context = current->audit_context;
+	struct audit_context *context = audit_context();
 
 	context->ipc.qbytes = qbytes;
 	context->ipc.perm_uid = uid;
@@ -2162,7 +2162,7 @@ void __audit_ipc_set_perm(unsigned long qbytes, uid_t uid, gid_t gid, umode_t mo
 
 void __audit_bprm(struct linux_binprm *bprm)
 {
-	struct audit_context *context = current->audit_context;
+	struct audit_context *context = audit_context();
 
 	context->type = AUDIT_EXECVE;
 	context->execve.argc = bprm->argc;
@@ -2177,7 +2177,7 @@ void __audit_bprm(struct linux_binprm *bprm)
  */
 int __audit_socketcall(int nargs, unsigned long *args)
 {
-	struct audit_context *context = current->audit_context;
+	struct audit_context *context = audit_context();
 
 	if (nargs <= 0 || nargs > AUDITSC_ARGS || !args)
 		return -EINVAL;
@@ -2195,7 +2195,7 @@ int __audit_socketcall(int nargs, unsigned long *args)
  */
 void __audit_fd_pair(int fd1, int fd2)
 {
-	struct audit_context *context = current->audit_context;
+	struct audit_context *context = audit_context();
 	context->fds[0] = fd1;
 	context->fds[1] = fd2;
 }
@@ -2209,7 +2209,7 @@ void __audit_fd_pair(int fd1, int fd2)
  */
 int __audit_sockaddr(int len, void *a)
 {
-	struct audit_context *context = current->audit_context;
+	struct audit_context *context = audit_context();
 
 	if (!context->sockaddr) {
 		void *p = kmalloc(sizeof(struct sockaddr_storage), GFP_KERNEL);
@@ -2225,7 +2225,7 @@ int __audit_sockaddr(int len, void *a)
 
 void __audit_ptrace(struct task_struct *t)
 {
-	struct audit_context *context = current->audit_context;
+	struct audit_context *context = audit_context();
 
 	context->target_pid = task_tgid_nr(t);
 	context->target_auid = audit_get_loginuid(t);
@@ -2246,8 +2246,7 @@ void __audit_ptrace(struct task_struct *t)
 int __audit_signal_info(int sig, struct task_struct *t)
 {
 	struct audit_aux_data_pids *axp;
-	struct task_struct *tsk = current;
-	struct audit_context *ctx = tsk->audit_context;
+	struct audit_context *ctx = audit_context();
 	kuid_t uid = current_uid(), t_uid = task_uid(t);
 
 	if (audit_pid && t->tgid == audit_pid) {
@@ -2314,7 +2313,7 @@ int __audit_log_bprm_fcaps(struct linux_binprm *bprm,
 			   const struct cred *new, const struct cred *old)
 {
 	struct audit_aux_data_bprm_fcaps *ax;
-	struct audit_context *context = current->audit_context;
+	struct audit_context *context = audit_context();
 	struct cpu_vfs_cap_data vcaps;
 
 	ax = kmalloc(sizeof(*ax), GFP_KERNEL);
@@ -2352,7 +2351,7 @@ int __audit_log_bprm_fcaps(struct linux_binprm *bprm,
  */
 void __audit_log_capset(const struct cred *new, const struct cred *old)
 {
-	struct audit_context *context = current->audit_context;
+	struct audit_context *context = audit_context();
 	context->capset.pid = task_tgid_nr(current);
 	context->capset.cap.effective   = new->cap_effective;
 	context->capset.cap.inheritable = new->cap_effective;
@@ -2362,7 +2361,7 @@ void __audit_log_capset(const struct cred *new, const struct cred *old)
 
 void __audit_mmap_fd(int fd, int flags)
 {
-	struct audit_context *context = current->audit_context;
+	struct audit_context *context = audit_context();
 	context->mmap.fd = fd;
 	context->mmap.flags = flags;
 	context->type = AUDIT_MMAP;
@@ -2370,7 +2369,7 @@ void __audit_mmap_fd(int fd, int flags)
 
 void __audit_log_kern_module(char *name)
 {
-	struct audit_context *context = current->audit_context;
+	struct audit_context *context = audit_context();
 
 	context->module.name = kmalloc(strlen(name) + 1, GFP_KERNEL);
 	strcpy(context->module.name, name);
@@ -2379,7 +2378,7 @@ void __audit_log_kern_module(char *name)
 
 void __audit_fanotify(unsigned int response)
 {
-	audit_log(current->audit_context, GFP_KERNEL,
+	audit_log(audit_context(), GFP_KERNEL,
 		AUDIT_FANOTIFY,	"resp=%u", response);
 }
 
@@ -2446,7 +2445,7 @@ void __audit_seccomp(unsigned long syscall, long signr, int code)
 
 struct list_head *audit_killed_trees(void)
 {
-	struct audit_context *ctx = current->audit_context;
+	struct audit_context *ctx = audit_context();
 	if (likely(!ctx || !ctx->in_syscall))
 		return NULL;
 	return &ctx->killed_trees;
