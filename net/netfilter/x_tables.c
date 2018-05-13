@@ -1188,7 +1188,7 @@ xt_replace_table(struct xt_table *table,
 	if (audit_enabled) {
 		struct audit_buffer *ab;
 
-		ab = audit_log_start(current->audit_context, GFP_KERNEL,
+		ab = audit_log_start(audit_context(), GFP_KERNEL,
 				     AUDIT_NETFILTER_CFG);
 		if (ab) {
 			audit_log_format(ab, "table=%s family=%u entries=%u",
