@@ -22,8 +22,10 @@ struct subprocess_info {
 	char *path;
 	char **argv;
 	char **envp;
+	struct file *file;
 	int wait;
 	int retval;
+	pid_t pid;
 	int (*init)(struct subprocess_info *info, struct cred *new);
 	void (*cleanup)(struct subprocess_info *info);
 	void *data;
@@ -36,6 +38,16 @@ extern struct subprocess_info *
 call_usermodehelper_setup(char *path, char **argv, char **envp, gfp_t gfp_mask,
 			  int (*init)(struct subprocess_info *info, struct cred *new),
 			  void (*cleanup)(struct subprocess_info *), void *data);
+
+struct subprocess_info *call_usermodehelper_setup_file(struct file *file,
+			  int (*init)(struct subprocess_info *info, struct cred *new),
+			  void (*cleanup)(struct subprocess_info *), void *data);
+struct umh_info {
+	struct file *pipe_to_umh;
+	struct file *pipe_from_umh;
+	pid_t pid;
+};
+int fork_usermode_blob(void *data, size_t len, struct umh_info *info);
 
 extern int
 call_usermodehelper_exec(struct subprocess_info *info, int wait);
