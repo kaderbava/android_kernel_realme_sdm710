@@ -3747,7 +3747,7 @@ static int __dev_queue_xmit(struct sk_buff *skb, void *accel_priv,
 								       dev,
 								       txq,
 								       &rc);
-				dev_xmit_recursion_inc();
+				dev_xmit_recursion_dec();
 				if (dev_xmit_complete(rc)) {
 					HARD_TX_UNLOCK(dev, txq);
 					goto out;
