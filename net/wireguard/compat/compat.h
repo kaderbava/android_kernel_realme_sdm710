@@ -490,7 +490,7 @@ static inline void *__compat_kvmalloc(size_t size, gfp_t flags)
 	ret = kmalloc(size, kmalloc_flags);
 	if (ret || size <= PAGE_SIZE)
 		return ret;
-	return __vmalloc(size, flags, PAGE_KERNEL);
+	return __vmalloc(size, flags);
 }
 static inline void *__compat_kvzalloc(size_t size, gfp_t flags)
 {
