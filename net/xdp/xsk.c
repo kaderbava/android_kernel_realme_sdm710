@@ -19,6 +19,7 @@
 #include <linux/uaccess.h>
 #include <linux/net.h>
 #include <linux/netdevice.h>
+#include <linux/rculist.h>
 #include <net/xdp_sock.h>
 #include <net/xdp.h>
 
@@ -136,6 +137,59 @@ int xsk_generic_rcv(struct xdp_sock *xs, struct xdp_buff *xdp)
 	return err;
 }
 
+void xsk_umem_complete_tx(struct xdp_umem *umem, u32 nb_entries)
+{
+	xskq_produce_flush_addr_n(umem->cq, nb_entries);
+}
+EXPORT_SYMBOL(xsk_umem_complete_tx);
+
+void xsk_umem_consume_tx_done(struct xdp_umem *umem)
+{
+	struct xdp_sock *xs;
+
+	rcu_read_lock();
+	list_for_each_entry_rcu(xs, &umem->xsk_list, list) {
+		xs->sk.sk_write_space(&xs->sk);
+	}
+	rcu_read_unlock();
+}
+EXPORT_SYMBOL(xsk_umem_consume_tx_done);
+
+bool xsk_umem_consume_tx(struct xdp_umem *umem, dma_addr_t *dma, u32 *len)
+{
+	struct xdp_desc desc;
+	struct xdp_sock *xs;
+
+	rcu_read_lock();
+	list_for_each_entry_rcu(xs, &umem->xsk_list, list) {
+		if (!xskq_peek_desc(xs->tx, &desc))
+			continue;
+
+		if (xskq_produce_addr_lazy(umem->cq, desc.addr))
+			goto out;
+
+		*dma = xdp_umem_get_dma(umem, desc.addr);
+		*len = desc.len;
+
+		xskq_discard_desc(xs->tx);
+		rcu_read_unlock();
+		return true;
+	}
+
+out:
+	rcu_read_unlock();
+	return false;
+}
+EXPORT_SYMBOL(xsk_umem_consume_tx);
+
+static int xsk_zc_xmit(struct sock *sk)
+{
+	struct xdp_sock *xs = xdp_sk(sk);
+	struct net_device *dev = xs->dev;
+
+	return dev->netdev_ops->ndo_xsk_async_xmit(dev, xs->queue_id);
+}
+
 static void xsk_destruct_skb(struct sk_buff *skb)
 {
 	u64 addr = (u64)(long)skb_shinfo(skb)->destructor_arg;
@@ -149,7 +203,6 @@ static void xsk_destruct_skb(struct sk_buff *skb)
 static int xsk_generic_xmit(struct sock *sk, struct msghdr *m,
 			    size_t total_len)
 {
-	bool need_wait = !(m->msg_flags & MSG_DONTWAIT);
 	u32 max_batch = TX_BATCH_SIZE;
 	struct xdp_sock *xs = xdp_sk(sk);
 	bool sent_frame = false;
@@ -159,8 +212,6 @@ static int xsk_generic_xmit(struct sock *sk, struct msghdr *m,
 
 	if (unlikely(!xs->tx))
 		return -ENOBUFS;
-	if (need_wait)
-		return -EOPNOTSUPP;
 
 	mutex_lock(&xs->mutex);
 
@@ -190,7 +241,7 @@ static int xsk_generic_xmit(struct sock *sk, struct msghdr *m,
 			goto out;
 		}
 
-		skb = sock_alloc_send_skb(sk, len, !need_wait, &err);
+		skb = sock_alloc_send_skb(sk, len, 1, &err);
 		if (unlikely(!skb)) {
 			err = -EAGAIN;
 			goto out;
@@ -233,6 +284,7 @@ out:
 
 static int xsk_sendmsg(struct socket *sock, struct msghdr *m, size_t total_len)
 {
+	bool need_wait = !(m->msg_flags & MSG_DONTWAIT);
 	struct sock *sk = sock->sk;
 	struct xdp_sock *xs = xdp_sk(sk);
 
@@ -240,8 +292,10 @@ static int xsk_sendmsg(struct socket *sock, struct msghdr *m, size_t total_len)
 		return -ENXIO;
 	if (unlikely(!(xs->dev->flags & IFF_UP)))
 		return -ENETDOWN;
+	if (need_wait)
+		return -EOPNOTSUPP;
 
-	return xsk_generic_xmit(sk, m, total_len);
+	return (xs->zc) ? xsk_zc_xmit(sk) : xsk_generic_xmit(sk, m, total_len);
 }
 
 static unsigned int xsk_poll(struct file *file, struct socket *sock,
@@ -417,10 +471,11 @@ static int xsk_bind(struct socket *sock, struct sockaddr *addr, int addr_len)
 	}
 
 	xs->dev = dev;
-	xs->queue_id = sxdp->sxdp_queue_id;
-
+	xs->zc = xs->umem->zc;
+	xs->queue_id = qid;
 	xskq_set_umem(xs->rx, &xs->umem->props);
 	xskq_set_umem(xs->tx, &xs->umem->props);
+	xdp_add_sk_umem(xs->umem, xs);
 
 out_unlock:
 	if (err)
@@ -658,6 +713,7 @@ static void xsk_destruct(struct sock *sk)
 
 	xskq_destroy(xs->rx);
 	xskq_destroy(xs->tx);
+	xdp_del_sk_umem(xs->umem, xs);
 	xdp_put_umem(xs->umem);
 
 	sk_refcnt_debug_dec(sk);
