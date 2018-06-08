@@ -3356,7 +3356,7 @@ void vm_stat_account(struct mm_struct *mm, vm_flags_t flags, long npages)
 		mm->data_vm += npages;
 }
 
-static int special_mapping_fault(struct vm_area_struct *vma,
+static vm_fault_t special_mapping_fault(struct vm_area_struct *vma,
 				 struct vm_fault *vmf);
 
 /*
@@ -3392,7 +3392,7 @@ static const struct vm_operations_struct legacy_special_mapping_vmops = {
 	.fault = special_mapping_fault,
 };
 
-static int special_mapping_fault(struct vm_area_struct *vma,
+static vm_fault_t special_mapping_fault(struct vm_area_struct *vma,
 				struct vm_fault *vmf)
 {
 	pgoff_t pgoff;
