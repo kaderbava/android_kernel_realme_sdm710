@@ -307,7 +307,7 @@ ATOMIC_OPS(xor, ^=, CTOP_INST_AXOR_DI_R2_R2_R3)
 #undef ATOMIC_OP
 
 /**
- * __atomic_add_unless - add unless the number is a given value
+ * atomic_fetch_add_unless - add unless the number is a given value
  * @v: pointer of type atomic_t
  * @a: the amount to add to v...
  * @u: ...unless v is equal to u.
@@ -315,7 +315,7 @@ ATOMIC_OPS(xor, ^=, CTOP_INST_AXOR_DI_R2_R2_R3)
  * Atomically adds @a to @v, so long as it was not @u.
  * Returns the old value of @v
  */
-#define __atomic_add_unless(v, a, u)					\
+#define atomic_fetch_add_unless(v, a, u)					\
 ({									\
 	int c, old;							\
 									\
