@@ -6327,7 +6327,7 @@ void perf_prepare_sample(struct perf_event_header *header,
 	}
 }
 
-static void __always_inline
+static __always_inline void
 __perf_event_output(struct perf_event *event,
 		    struct perf_sample_data *data,
 		    struct pt_regs *regs,
