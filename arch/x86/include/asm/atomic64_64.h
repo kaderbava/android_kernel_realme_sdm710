@@ -184,7 +184,7 @@ static __always_inline bool atomic64_try_cmpxchg(atomic64_t *v, long *old, long 
 
 static inline long atomic64_xchg(atomic64_t *v, long new)
 {
-	return xchg(&v->counter, new);
+	return arch_xchg(&v->counter, new);
 }
 
 /**
