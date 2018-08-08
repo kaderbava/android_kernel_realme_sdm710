@@ -332,7 +332,7 @@ struct sock *__inet_lookup_listener(struct net *net,
 				    saddr, sport, daddr, hnum,
 				    dif, sdif);
 	if (result)
-		return result;
+		goto done;
 
 	/* Lookup lhash2 with INADDR_ANY */
 
@@ -341,9 +341,10 @@ struct sock *__inet_lookup_listener(struct net *net,
 	if (ilb2->count > ilb->count)
 		goto port_lookup;
 
-	return inet_lhash2_lookup(net, ilb2, skb, doff,
-				  saddr, sport, daddr, hnum,
-				  dif, sdif);
+	result = inet_lhash2_lookup(net, ilb2, skb, doff,
+				    saddr, sport, daddr, hnum,
+				    dif, sdif);
+	goto done;
 
 port_lookup:
 	sk_for_each_rcu(sk, &ilb->head) {
@@ -356,12 +357,15 @@ port_lookup:
 				result = reuseport_select_sock(sk, phash,
 							       skb, doff);
 				if (result)
-					return result;
+					goto done;
 			}
 			result = sk;
 			hiscore = score;
 		}
 	}
+done:
+	if (unlikely(IS_ERR(result)))
+		return NULL;
 	return result;
 }
 EXPORT_SYMBOL_GPL(__inet_lookup_listener);
