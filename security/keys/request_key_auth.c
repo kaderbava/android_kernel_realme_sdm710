@@ -11,7 +11,6 @@
  * See Documentation/security/keys-request-key.txt
  */
 
-#include <linux/module.h>
 #include <linux/sched.h>
 #include <linux/err.h>
 #include <linux/seq_file.h>
