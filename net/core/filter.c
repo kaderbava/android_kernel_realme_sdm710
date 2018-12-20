@@ -7234,6 +7234,9 @@ static u32 sk_msg_convert_ctx_access(enum bpf_access_type type,
 	struct bpf_insn *insn = insn_buf;
 	int off;
 
+	/* convert ctx uses the fact sg element is first in struct */
+	BUILD_BUG_ON(offsetof(struct sk_msg, sg) != 0);
+
 	switch (si->off) {
 	case offsetof(struct sk_msg_md, data):
 		*insn++ = BPF_LDX_MEM(BPF_FIELD_SIZEOF(struct sk_msg, data),
