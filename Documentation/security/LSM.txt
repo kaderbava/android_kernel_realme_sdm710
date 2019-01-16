@@ -36,6 +36,17 @@ security module and contains all its special files. The files directly
 in ``/proc/.../attr`` remain as legacy interfaces for modules that provide
 subdirectories.
 
+.. toctree::
+   :maxdepth: 1
+
+   apparmor
+   LoadPin
+   SELinux
+   Smack
+   tomoyo
+   Yama
+   SafeSetID
+
 Based on https://lkml.org/lkml/2007/10/26/215,
 a new LSM is accepted into the kernel when its intent (a description of
 what it tries to protect against and in what cases one would expect to
