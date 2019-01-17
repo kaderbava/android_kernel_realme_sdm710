@@ -2448,6 +2448,7 @@ int tcp_disconnect(struct sock *sk, int flags)
 		tp->write_seq = 1;
 	tp->snd_cwnd = 2;
 	icsk->icsk_probes_out = 0;
+	icsk->icsk_rto = TCP_TIMEOUT_INIT;
 	tp->packets_out = 0;
 	tp->snd_ssthresh = TCP_INFINITE_SSTHRESH;
 	tp->snd_cwnd_cnt = 0;
