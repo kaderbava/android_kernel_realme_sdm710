@@ -42,6 +42,7 @@ struct sched_param {
 #include <linux/topology.h>
 #include <linux/seccomp.h>
 #include <linux/rcupdate.h>
+#include <linux/refcount.h>
 #include <linux/rculist.h>
 #include <linux/rtmutex.h>
 
@@ -1710,7 +1711,7 @@ struct task_struct {
 #endif
 	volatile long state;	/* -1 unrunnable, 0 runnable, >0 stopped */
 	void *stack;
-	atomic_t usage;
+	refcount_t usage;
 	unsigned int flags;	/* per process flags, defined below */
 	unsigned int ptrace;
 
@@ -2519,13 +2520,13 @@ static inline int is_global_init(struct task_struct *tsk)
 extern struct pid *cad_pid;
 
 extern void free_task(struct task_struct *tsk);
-#define get_task_struct(tsk) do { atomic_inc(&(tsk)->usage); } while(0)
+#define get_task_struct(tsk) do { refcount_inc(&(tsk)->usage); } while(0)
 
 extern void __put_task_struct(struct task_struct *t);
 
 static inline void put_task_struct(struct task_struct *t)
 {
-	if (atomic_dec_and_test(&t->usage))
+	if (refcount_dec_and_test(&t->usage))
 		__put_task_struct(t);
 }
 
