@@ -19,7 +19,11 @@
 #include <linux/kernfs.h>
 
 struct kernfs_iattrs {
-	struct iattr		ia_iattr;
+	kuid_t			ia_uid;
+	kgid_t			ia_gid;
+	struct timespec	ia_atime;
+	struct timespec	ia_mtime;
+	struct timespec	ia_ctime;
 	void			*ia_secdata;
 	u32			ia_secdata_len;
 
