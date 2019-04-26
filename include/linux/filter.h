@@ -18,6 +18,7 @@
 #include <linux/cryptohash.h>
 #include <linux/kallsyms.h>
 #include <linux/if_vlan.h>
+#include <linux/vmalloc.h>
 
 #include <net/sch_generic.h>
 
@@ -766,30 +767,16 @@ bpf_ctx_narrow_access_ok(u32 off, u32 size, u32 size_default)
 #ifdef CONFIG_ARCH_HAS_SET_MEMORY
 static inline void bpf_prog_lock_ro(struct bpf_prog *fp)
 {
-	fp->locked = 1;
+	set_vm_flush_reset_perms(fp);
 	WARN_ON_ONCE(set_memory_ro((unsigned long)fp, fp->pages));
-}
-
-static inline void bpf_prog_unlock_ro(struct bpf_prog *fp)
-{
-	if (fp->locked) {
-		WARN_ON_ONCE(set_memory_rw((unsigned long)fp, fp->pages));
-		/* In case set_memory_rw() fails, we want to be the first
-		 * to crash here instead of some random place later on.
-		 */
-		fp->locked = 0;
-	}
 }
 
 static inline void bpf_jit_binary_lock_ro(struct bpf_binary_header *hdr)
 {
+	set_vm_flush_reset_perms(hdr);
 	WARN_ON_ONCE(set_memory_ro((unsigned long)hdr, hdr->pages));
 }
 
-static inline void bpf_jit_binary_unlock_ro(struct bpf_binary_header *hdr)
-{
-	WARN_ON_ONCE(set_memory_rw((unsigned long)hdr, hdr->pages));
-}
 #else
 static inline void bpf_prog_lock_ro(struct bpf_prog *fp)
 {
@@ -843,7 +830,6 @@ void __bpf_prog_free(struct bpf_prog *fp);
 
 static inline void bpf_prog_unlock_free(struct bpf_prog *fp)
 {
-	bpf_prog_unlock_ro(fp);
 	__bpf_prog_free(fp);
 }
 
