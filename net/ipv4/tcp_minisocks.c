@@ -532,6 +532,11 @@ struct sock *tcp_create_openreq_child(const struct sock *sk,
 			newtp->rx_opt.ts_recent_stamp = 0;
 			newtp->tcp_header_len = sizeof(struct tcphdr);
 		}
+		if (req->num_timeout) {
+			newtp->undo_marker = treq->snt_isn;
+			newtp->retrans_stamp = div_u64(treq->snt_synack.v64,
+						       USEC_PER_SEC / 1000);
+		}
 		newtp->tsoffset = 0;
 #ifdef CONFIG_TCP_MD5SIG
 		newtp->md5sig_info = NULL;	/*XXX*/
