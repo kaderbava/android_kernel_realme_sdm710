@@ -48,6 +48,10 @@ struct bpf_map {
 	 * are also accessed in fast-path (e.g. ops, max_entries).
 	 */
 	const struct bpf_map_ops *ops ____cacheline_aligned;
+	struct bpf_map *inner_map_meta;
+#ifdef CONFIG_SECURITY
+        void *security;
+#endif
 	enum bpf_map_type map_type;
 	u32 key_size;
 	u32 value_size;
@@ -65,11 +69,7 @@ struct bpf_map {
 	struct user_struct *user ____cacheline_aligned;
 	atomic_t refcnt;
 	atomic_t usercnt;
-	struct bpf_map *inner_map_meta;
 	struct work_struct work;
-#ifdef CONFIG_SECURITY
-	void *security;
-#endif
 };
 
 /* function argument constraints */
@@ -310,6 +310,9 @@ _out:							\
 #ifdef CONFIG_BPF_SYSCALL
 DECLARE_PER_CPU(int, bpf_prog_active);
 
+extern const struct file_operations bpf_map_fops;
+extern const struct file_operations bpf_prog_fops;
+
 #define BPF_PROG_TYPE(_id, _ops) \
 	extern const struct bpf_verifier_ops _ops;
 #define BPF_MAP_TYPE(_id, _ops) \
@@ -317,9 +320,6 @@ DECLARE_PER_CPU(int, bpf_prog_active);
 #include <linux/bpf_types.h>
 #undef BPF_PROG_TYPE
 #undef BPF_MAP_TYPE
-
-extern const struct file_operations bpf_map_fops;
-extern const struct file_operations bpf_prog_fops;
 
 struct bpf_prog *bpf_prog_get(u32 ufd);
 struct bpf_prog *bpf_prog_get_type(u32 ufd, enum bpf_prog_type type);
@@ -428,16 +428,6 @@ static inline struct bpf_prog * __must_check bpf_prog_inc(struct bpf_prog *prog)
 {
 	return ERR_PTR(-EOPNOTSUPP);
 }
-static inline int bpf_obj_get_user(const char __user *pathname, int flags)
-{
-	return -EOPNOTSUPP;
-}
-
-static inline struct bpf_prog *bpf_prog_get_type_path(const char *name,
-				enum bpf_prog_type type)
-{
-	return ERR_PTR(-EOPNOTSUPP);
-}
 
 static inline struct bpf_prog *__must_check
 bpf_prog_inc_not_zero(struct bpf_prog *prog)
@@ -452,6 +442,17 @@ static inline int __bpf_prog_charge(struct user_struct *user, u32 pages)
 
 static inline void __bpf_prog_uncharge(struct user_struct *user, u32 pages)
 {
+}
+
+static inline int bpf_obj_get_user(const char __user *pathname, int flags)
+{
+        return -EOPNOTSUPP;
+}
+
+static inline struct bpf_prog *bpf_prog_get_type_path(const char *name,
+                                enum bpf_prog_type type)
+{
+        return ERR_PTR(-EOPNOTSUPP);
 }
 
 static inline struct net_device  *__dev_map_lookup_elem(struct bpf_map *map,
