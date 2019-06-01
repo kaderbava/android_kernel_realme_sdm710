@@ -276,6 +276,7 @@ struct mem_cgroup {
 };
 
 extern struct mem_cgroup *root_mem_cgroup;
+static inline struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *memcg);
 
 static inline bool mem_cgroup_is_root(struct mem_cgroup *memcg)
 {
@@ -290,8 +291,14 @@ static inline bool mem_cgroup_disabled(void)
 static inline void mem_cgroup_event(struct mem_cgroup *memcg,
 				    enum mem_cgroup_events_index idx)
 {
-	this_cpu_inc(memcg->stat->events[idx]);
-	cgroup_file_notify(&memcg->events_file);
+	do {
+		this_cpu_inc(memcg->stat->events[idx]);
+                cgroup_file_notify(&memcg->events_file);
+
+		if (cgrp_dfl_root.flags & CGRP_ROOT_MEMORY_LOCAL_EVENTS)
+			break;
+	} while ((memcg = parent_mem_cgroup(memcg)) &&
+			!mem_cgroup_is_root(memcg));
 }
 
 bool mem_cgroup_low(struct mem_cgroup *root, struct mem_cgroup *memcg);
