@@ -235,8 +235,13 @@
 	    ".long 1b\t\n"						\
 	    ".popsection\t\n");						\
 })
+
+/* Annotate a C jump table to allow objtool to follow the code flow */
+#define __annotate_jump_table __section(".rodata..c_jump_table")
+
 #else
 #define annotate_unreachable()
+#define __annotate_jump_table
 #endif
 
 /*
