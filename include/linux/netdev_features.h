@@ -78,6 +78,8 @@ enum {
 
 	NETIF_F_HW_TC_BIT,		/* Offload TC infrastructure */
 
+	NETIF_F_HW_MACSEC_BIT,		/* Hardware Generic receive offload */
+
 	/*
 	 * Add your fresh new feature above and remember to update
 	 * netdev_features_strings[] in net/core/ethtool.c and maybe
@@ -140,6 +142,7 @@ enum {
 #define NETIF_F_BUSY_POLL	__NETIF_F(BUSY_POLL)
 #define NETIF_F_HW_TC		__NETIF_F(HW_TC)
 #define NETIF_F_GSO_UDP_L4	__NETIF_F(GSO_UDP_L4)
+#define NETIF_F_HW_MACSEC      __NETIF_F(HW_MACSEC)
 
 /* Finds the next feature with the highest number of the range of start-1 till 0.
  */
