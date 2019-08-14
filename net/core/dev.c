@@ -7331,11 +7331,16 @@ int dev_change_xdp_fd(struct net_device *dev, int fd, u32 flags)
 		bpf_chk = generic_xdp_install;
 
 	if (fd >= 0) {
+		u32 prog_id;
+
 		if (!offload && __dev_xdp_query(dev, bpf_chk, XDP_QUERY_PROG)) {
 			return -EEXIST;
-		if ((flags & XDP_FLAGS_UPDATE_IF_NOEXIST) &&
-		    __dev_xdp_query(dev, bpf_op, query))
+		}
+
+		prog_id = __dev_xdp_query(dev, bpf_op, query);
+		if ((flags & XDP_FLAGS_UPDATE_IF_NOEXIST) && prog_id) {
 			return -EBUSY;
+		}
 
 		prog = bpf_prog_get_type_dev(fd, BPF_PROG_TYPE_XDP,
 					     bpf_op == ops->ndo_bpf);
@@ -7357,6 +7362,13 @@ int dev_change_xdp_fd(struct net_device *dev, int fd, u32 flags)
 			return -EINVAL;
 		}
 
+		if (prog->aux->id == prog_id) {
+			bpf_prog_put(prog);
+			return 0;
+		}
+	} else {
+		if (!__dev_xdp_query(dev, bpf_op, query))
+			return 0;
 	}
 
 	err = dev_xdp_install(dev, bpf_op, flags, prog);
