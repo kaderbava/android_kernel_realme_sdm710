@@ -1363,6 +1363,11 @@
  * @bpf_prog_free_security:
  *	Clean up the security information stored inside bpf prog.
  *
+ * @locked_down
+ *     Determine whether a kernel feature that potentially enables arbitrary
+ *     code execution in kernel space should be permitted.
+ *
+ *     @what: kernel feature being accessed
  */
 
 union security_list_options {
@@ -1709,6 +1714,7 @@ union security_list_options {
 	int (*perf_event_write)(struct perf_event *event);
 
 #endif
+	int (*locked_down)(enum lockdown_reason what);
 };
 
 struct security_hook_heads {
@@ -1940,6 +1946,7 @@ struct security_hook_heads {
 	struct hlist_head perf_event_read;
 	struct hlist_head perf_event_write;
 #endif
+	struct hlist_head locked_down;
 };
 
 /*
