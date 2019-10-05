@@ -2156,7 +2156,7 @@ static sctp_ierror_t sctp_verify_param(struct net *net,
 
 	case SCTP_PARAM_SET_PRIMARY:
 		if (!net->sctp.addip_enable)
-			goto fallthrough;
+			goto unhandled;
 
 		if (ntohs(param.p->length) < sizeof(struct sctp_addip_param) +
 					     sizeof(struct sctp_paramhdr)) {
@@ -2175,11 +2175,11 @@ static sctp_ierror_t sctp_verify_param(struct net *net,
 	case SCTP_PARAM_FWD_TSN_SUPPORT:
 		if (ep->prsctp_enable)
 			break;
-		goto fallthrough;
+		goto unhandled;
 
 	case SCTP_PARAM_RANDOM:
 		if (!ep->auth_enable)
-			goto fallthrough;
+			goto unhandled;
 
 		/* SCTP-AUTH: Secion 6.1
 		 * If the random number is not 32 byte long the association
@@ -2196,7 +2196,7 @@ static sctp_ierror_t sctp_verify_param(struct net *net,
 
 	case SCTP_PARAM_CHUNKS:
 		if (!ep->auth_enable)
-			goto fallthrough;
+			goto unhandled;
 
 		/* SCTP-AUTH: Section 3.2
 		 * The CHUNKS parameter MUST be included once in the INIT or
@@ -2212,7 +2212,7 @@ static sctp_ierror_t sctp_verify_param(struct net *net,
 
 	case SCTP_PARAM_HMAC_ALGO:
 		if (!ep->auth_enable)
-			goto fallthrough;
+			goto unhandled;
 
 		hmacs = (struct sctp_hmac_algo_param *)param.p;
 		n_elt = (ntohs(param.p->length) - sizeof(sctp_paramhdr_t)) >> 1;
@@ -2234,7 +2234,7 @@ static sctp_ierror_t sctp_verify_param(struct net *net,
 			retval = SCTP_IERROR_ABORT;
 		}
 		break;
-fallthrough:
+unhandled:
 	default:
 		pr_debug("%s: unrecognized param:%d for chunk:%d\n",
 			 __func__, ntohs(param.p->type), cid);
