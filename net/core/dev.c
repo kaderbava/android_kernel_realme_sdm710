@@ -7393,7 +7393,8 @@ int dev_change_xdp_fd(struct net_device *dev, int fd, int expected_fd, u32 flags
 			return -EINVAL;
 		}
 
-		if (prog->aux->id == prog_id) {
+		/* prog->aux->id may be 0 for orphaned device-bound progs */
+		if (prog->aux->id && prog->aux->id == prog_id) {
 			bpf_prog_put(prog);
 			return 0;
 		}
