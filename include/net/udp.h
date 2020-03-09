@@ -362,4 +362,9 @@ void udp_encap_enable(void);
 void udpv6_encap_enable(void);
 #endif
 
+#ifdef CONFIG_BPF_STREAM_PARSER
+struct sk_psock;
+struct proto *udp_bpf_get_proto(struct sock *sk, struct sk_psock *psock);
+#endif /* BPF_STREAM_PARSER */
+
 #endif	/* _UDP_H */
