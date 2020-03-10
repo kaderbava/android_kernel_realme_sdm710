@@ -103,6 +103,14 @@ extern struct cred init_cred;
 #else
 #define INIT_TASK_RCU_TASKS(tsk)
 #endif
+#ifdef CONFIG_TASKS_TRACE_RCU
+#define INIT_TASK_RCU_TRACE(tsk)					\
+	.trc_reader_nesting = 0,					\
+	.trc_holdout_list =						\
+		LIST_HEAD_INIT(tsk.trc_holdout_list),
+#else
+#define INIT_TASK_RCU_TRACE(tsk)
+#endif
 
 extern struct task_group root_task_group;
 
