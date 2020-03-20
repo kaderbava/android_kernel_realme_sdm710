@@ -5,6 +5,9 @@
 # include <linux/seqlock.h>
 # include <linux/math64.h>
 # include <linux/time64.h>
+# include <linux/timex.h>
+
+# include <vdso/time32.h>
 
 extern struct timezone sys_tz;
 
@@ -270,9 +273,6 @@ extern struct __kernel_old_timeval ns_to_kernel_old_timeval(s64 nsec);
  * the compat code so it can be shared between 32-bit and 64-bit builds
  * both of which provide compatibility with old 32-bit tasks.
  */
-#define old_time32_t		compat_time_t
-#define old_timeval32		compat_timeval
-#define old_timespec32		compat_timespec
 #define old_itimerspec32	compat_itimerspec
 #define ns_to_old_timeval32	ns_to_compat_timeval
 #define get_old_itimerspec32	get_compat_itimerspec64
