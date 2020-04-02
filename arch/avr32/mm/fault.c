@@ -64,7 +64,7 @@ asmlinkage void do_page_fault(unsigned long ecr, struct pt_regs *regs)
 	long signr;
 	int code;
 	int fault;
-	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
+	unsigned int flags = FAULT_FLAG_DEFAULT;
 
 	if (notify_page_fault(regs, ecr))
 		return;
