@@ -329,6 +329,13 @@ extern pgprot_t protection_map[16];
 /* Speculative fault, not holding mmap_sem */
 #define FAULT_FLAG_SPECULATIVE	0x200
 #define FAULT_FLAG_PREFAULT_OLD 0x400   /* Make faultaround ptes old */
+/* Permit nonfatal signals while waiting for a userfault. */
+#define FAULT_FLAG_INTERRUPTIBLE 0x800
+
+/* Default flags for architecture page-fault handlers. */
+#define FAULT_FLAG_DEFAULT (FAULT_FLAG_ALLOW_RETRY | \
+			    FAULT_FLAG_KILLABLE | \
+			    FAULT_FLAG_INTERRUPTIBLE)
 
 /*
  * vm_fault is filled by the the pagefault handler and passed to the vma's

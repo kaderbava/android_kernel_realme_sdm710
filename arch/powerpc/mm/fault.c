@@ -214,7 +214,7 @@ int do_page_fault(struct pt_regs *regs, unsigned long address,
 	enum ctx_state prev_state = exception_enter();
 	struct vm_area_struct * vma;
 	struct mm_struct *mm = current->mm;
-	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
+	unsigned int flags = FAULT_FLAG_DEFAULT;
 	int code = SEGV_MAPERR;
 	int is_write = 0;
 	int trap = TRAP(regs);
