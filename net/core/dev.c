@@ -7314,8 +7314,8 @@ int dev_change_xdp_fd(struct net_device *dev, int fd, int expected_fd, u32 flags
 	const struct net_device_ops *ops = dev->netdev_ops;
 	enum bpf_netdev_command query;
 	u32 prog_id, expected_id = 0;
-	struct bpf_prog *prog = NULL;
 	bpf_op_t bpf_op, bpf_chk;
+	struct bpf_prog *prog;
 	bool offload;
 	int err;
 
@@ -7384,6 +7384,7 @@ int dev_change_xdp_fd(struct net_device *dev, int fd, int expected_fd, u32 flags
 	} else {
 		if (!prog_id)
 			return 0;
+		prog = NULL;
 	}
 
 	err = dev_xdp_install(dev, bpf_op, flags, prog);
