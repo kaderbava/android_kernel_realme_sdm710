@@ -2395,7 +2395,7 @@ void set_numabalancing_state(bool enabled)
 
 #ifdef CONFIG_PROC_SYSCTL
 int sysctl_numa_balancing(struct ctl_table *table, int write,
-			 void __user *buffer, size_t *lenp, loff_t *ppos)
+			  void *buffer, size_t *lenp, loff_t *ppos)
 {
 	struct ctl_table t;
 	int err;
@@ -2469,8 +2469,8 @@ static void __init init_schedstats(void)
 }
 
 #ifdef CONFIG_PROC_SYSCTL
-int sysctl_schedstats(struct ctl_table *table, int write,
-			 void __user *buffer, size_t *lenp, loff_t *ppos)
+int sysctl_schedstats(struct ctl_table *table, int write, void *buffer,
+		size_t *lenp, loff_t *ppos)
 {
 	struct ctl_table t;
 	int err;
@@ -9132,9 +9132,8 @@ static void sched_rt_do_global(void)
 	def_rt_bandwidth.rt_period = ns_to_ktime(global_rt_period());
 }
 
-int sched_rt_handler(struct ctl_table *table, int write,
-		void __user *buffer, size_t *lenp,
-		loff_t *ppos)
+int sched_rt_handler(struct ctl_table *table, int write, void *buffer,
+		size_t *lenp, loff_t *ppos)
 {
 	int old_period, old_runtime;
 	static DEFINE_MUTEX(mutex);
@@ -9172,9 +9171,8 @@ undo:
 	return ret;
 }
 
-int sched_rr_handler(struct ctl_table *table, int write,
-		void __user *buffer, size_t *lenp,
-		loff_t *ppos)
+int sched_rr_handler(struct ctl_table *table, int write, void *buffer,
+		size_t *lenp, loff_t *ppos)
 {
 	int ret;
 	static DEFINE_MUTEX(mutex);

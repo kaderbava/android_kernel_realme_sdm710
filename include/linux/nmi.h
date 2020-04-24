@@ -139,16 +139,11 @@ extern int sysctl_hardlockup_all_cpu_backtrace;
 
 extern bool is_hardlockup(void);
 struct ctl_table;
-extern int proc_watchdog(struct ctl_table *, int ,
-			 void __user *, size_t *, loff_t *);
-extern int proc_nmi_watchdog(struct ctl_table *, int ,
-			     void __user *, size_t *, loff_t *);
-extern int proc_soft_watchdog(struct ctl_table *, int ,
-			      void __user *, size_t *, loff_t *);
-extern int proc_watchdog_thresh(struct ctl_table *, int ,
-				void __user *, size_t *, loff_t *);
-extern int proc_watchdog_cpumask(struct ctl_table *, int,
-				 void __user *, size_t *, loff_t *);
+int proc_watchdog(struct ctl_table *, int, void *, size_t *, loff_t *);
+int proc_nmi_watchdog(struct ctl_table *, int , void *, size_t *, loff_t *);
+int proc_soft_watchdog(struct ctl_table *, int , void *, size_t *, loff_t *);
+int proc_watchdog_thresh(struct ctl_table *, int , void *, size_t *, loff_t *);
+int proc_watchdog_cpumask(struct ctl_table *, int, void *, size_t *, loff_t *);
 extern int lockup_detector_suspend(void);
 extern void lockup_detector_resume(void);
 #else
