@@ -2257,8 +2257,7 @@ static int xs_tcp_finish_connecting(struct rpc_xprt *xprt, struct socket *sock)
 		/* TCP Keepalive options */
 		kernel_setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE,
 				(char *)&opt_on, sizeof(opt_on));
-		kernel_setsockopt(sock, SOL_TCP, TCP_KEEPIDLE,
-				(char *)&keepidle, sizeof(keepidle));
+		tcp_sock_set_keepidle(sock->sk, keepidle);
 		kernel_setsockopt(sock, SOL_TCP, TCP_KEEPINTVL,
 				(char *)&keepidle, sizeof(keepidle));
 		kernel_setsockopt(sock, SOL_TCP, TCP_KEEPCNT,
