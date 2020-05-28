@@ -485,4 +485,6 @@ static inline u16 tcp_mss_clamp(const struct tcp_sock *tp, u16 mss)
 
 	return (user_mss && user_mss < mss) ? user_mss : mss;
 }
+
+int tcp_sock_set_keepidle(struct sock *sk, int val);
 #endif	/* _LINUX_TCP_H */
