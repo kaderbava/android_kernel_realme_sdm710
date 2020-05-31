@@ -25,6 +25,7 @@
 #include <uapi/linux/btf.h>
 #include <linux/bpf_lsm.h>
 #include <linux/poll.h>
+#include <linux/bpf-netns.h>
 
 #define IS_FD_ARRAY(map) ((map)->map_type == BPF_MAP_TYPE_PERF_EVENT_ARRAY || \
 			  (map)->map_type == BPF_MAP_TYPE_CGROUP_ARRAY || \
@@ -2851,7 +2852,7 @@ static int bpf_prog_attach(const union bpf_attr *attr)
 		ret = sock_map_get_from_fd(attr, prog);
 		break;
 	case BPF_PROG_TYPE_FLOW_DISSECTOR:
-		ret = skb_flow_dissector_bpf_prog_attach(attr, prog);
+		ret = netns_bpf_prog_attach(attr, prog);
 		break;
 	case BPF_PROG_TYPE_CGROUP_DEVICE:
 	case BPF_PROG_TYPE_CGROUP_SKB:
@@ -2889,7 +2890,7 @@ static int bpf_prog_detach(const union bpf_attr *attr)
 	case BPF_PROG_TYPE_FLOW_DISSECTOR:
 		if (!capable(CAP_NET_ADMIN))
 			return -EPERM;
-		return skb_flow_dissector_bpf_prog_detach(attr);
+		return netns_bpf_prog_detach(attr);
 	case BPF_PROG_TYPE_CGROUP_DEVICE:
 	case BPF_PROG_TYPE_CGROUP_SKB:
 	case BPF_PROG_TYPE_CGROUP_SOCK:
@@ -2940,7 +2941,7 @@ static int bpf_prog_query(const union bpf_attr *attr,
 	case BPF_CGROUP_SETSOCKOPT:
 		return cgroup_bpf_prog_query(attr, uattr);
 	case BPF_FLOW_DISSECTOR:
-		return skb_flow_dissector_prog_query(attr, uattr);
+		return netns_bpf_prog_query(attr, uattr);
 	default:
 		return -EINVAL;
 	}
