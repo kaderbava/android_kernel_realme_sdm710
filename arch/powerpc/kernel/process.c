@@ -1246,7 +1246,7 @@ static void show_instructions(struct pt_regs *regs)
 #endif
 
 		if (!__kernel_text_address(pc) ||
-		     probe_kernel_address((unsigned int __user *)pc, instr)) {
+		     get_kernel_nofault(instr, (unsigned int __user *)pc)) {
 			pr_cont("XXXXXXXX ");
 		} else {
 			if (regs->nip == pc)
