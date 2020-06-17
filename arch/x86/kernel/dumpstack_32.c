@@ -200,7 +200,7 @@ int is_valid_bugaddr(unsigned long ip)
 
 	if (ip < PAGE_OFFSET)
 		return 0;
-	if (probe_kernel_address((unsigned short *)ip, ud2))
+	if (get_kernel_nofault(ud2, (unsigned short *)ip))
 		return 0;
 
 	return ud2 == 0x0b0f;
