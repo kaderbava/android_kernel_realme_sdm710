@@ -3995,14 +3995,6 @@ static inline void inc_syscfs(struct task_struct *tsk)
 #define TASK_SIZE_OF(tsk)	TASK_SIZE
 #endif
 
-void __exit_umh(struct task_struct *tsk);
-
-static inline void exit_umh(struct task_struct *tsk)
-{
-		if (unlikely(tsk->flags & PF_UMH))
-					__exit_umh(tsk);
-}
-
 #ifdef CONFIG_MEMCG
 extern void mm_update_next_owner(struct mm_struct *mm);
 #else
