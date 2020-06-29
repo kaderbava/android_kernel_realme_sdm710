@@ -2875,9 +2875,7 @@ static int bpf_prog_detach(const union bpf_attr *attr)
 	case BPF_PROG_TYPE_SK_SKB:
 		return sock_map_prog_detach(attr, ptype);
 	case BPF_PROG_TYPE_FLOW_DISSECTOR:
-		if (!capable(CAP_NET_ADMIN))
-			return -EPERM;
-		return netns_bpf_prog_detach(attr);
+		return netns_bpf_prog_detach(attr, ptype);
 	case BPF_PROG_TYPE_CGROUP_DEVICE:
 	case BPF_PROG_TYPE_CGROUP_SKB:
 	case BPF_PROG_TYPE_CGROUP_SOCK:
