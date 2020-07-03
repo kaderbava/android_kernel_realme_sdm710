@@ -2684,7 +2684,7 @@ static int bpf_skb_proto_6_to_4(struct sk_buff *skb)
 
 static int bpf_skb_proto_xlat(struct sk_buff *skb, __be16 to_proto)
 {
-	__be16 from_proto = skb->protocol;
+	__be16 from_proto = skb_protocol(skb, true);
 
 	if (from_proto == htons(ETH_P_IP) &&
 	      to_proto == htons(ETH_P_IPV6))
@@ -2757,7 +2757,7 @@ static const struct bpf_func_proto bpf_skb_change_type_proto = {
 
 static u32 bpf_skb_net_base_len(const struct sk_buff *skb)
 {
-	switch (skb->protocol) {
+	switch (skb_protocol(skb, true)) {
 	case htons(ETH_P_IP):
 		return sizeof(struct iphdr);
 	case htons(ETH_P_IPV6):
@@ -2833,7 +2833,7 @@ static int bpf_skb_adjust_net(struct sk_buff *skb, s32 len_diff)
 	u32 len_cur, len_diff_abs = abs(len_diff);
 	u32 len_min = bpf_skb_net_base_len(skb);
 	u32 len_max = BPF_SKB_MAX_LEN;
-	__be16 proto = skb->protocol;
+	__be16 proto = skb_protocol(skb, true);
 	bool shrink = len_diff < 0;
 	int ret;
 
