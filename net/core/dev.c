@@ -4700,6 +4700,8 @@ static int generic_xdp_install(struct net_device *dev, struct netdev_bpf *xdp)
 		for (i = 0; i < new->aux->used_map_cnt; i++) {
 			if (dev_map_can_have_prog(new->aux->used_maps[i]))
 				return -EINVAL;
+			if (cpu_map_prog_allowed(new->aux->used_maps[i]))
+				return -EINVAL;
 		}
 	}
 
@@ -7327,6 +7329,11 @@ int dev_change_xdp_fd(struct net_device *dev, int fd, u32 flags)
 		}
 
 		if (prog->expected_attach_type == BPF_XDP_DEVMAP) {
+			bpf_prog_put(prog);
+			return -EINVAL;
+		}
+
+		if (prog->expected_attach_type == BPF_XDP_CPUMAP) {
 			bpf_prog_put(prog);
 			return -EINVAL;
 		}
