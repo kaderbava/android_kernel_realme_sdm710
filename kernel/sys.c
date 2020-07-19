@@ -1838,11 +1838,12 @@ static int prctl_set_mm_map(int opt, const void __user *addr, unsigned long data
 
 	if (prctl_map.exe_fd != (u32)-1) {
 		/*
-		 * Make sure the caller has the rights to
-		 * change /proc/pid/exe: only local sys admin should
-		 * be allowed to.
+		 * Require local checkpoint/restore capability.
+		 * A user with ptrace access can already masquerade any
+		 * program as another executable, including setuid ones.
+		 * This may affect the tomoyo subsystem.
 		 */
-		if (!ns_capable(current_user_ns(), CAP_SYS_ADMIN))
+		if (!checkpoint_restore_ns_capable(current_user_ns()))
 			return -EINVAL;
 
 		error = prctl_set_mm_exe_file(mm, prctl_map.exe_fd);
