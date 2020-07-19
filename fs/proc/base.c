@@ -2231,8 +2231,8 @@ struct map_files_info {
 };
 
 /*
- * Only allow CAP_SYS_ADMIN to follow the links, due to concerns about how the
- * symlinks may be used to bypass permissions on ancestor directories in the
+ * Require CAP_SYS_ADMIN or CAP_CHECKPOINT_RESTORE to follow these
+ * links. They can bypass permissions on ancestor directories in the
  * path to the file in question.
  */
 static const char *
@@ -2240,7 +2240,7 @@ proc_map_files_get_link(struct dentry *dentry,
 			struct inode *inode,
 		        struct delayed_call *done)
 {
-	if (!capable(CAP_SYS_ADMIN))
+	if (!checkpoint_restore_ns_capable(&init_user_ns))
 		return ERR_PTR(-EPERM);
 
 	return proc_pid_get_link(dentry, inode, done);
