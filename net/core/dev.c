@@ -7222,6 +7222,12 @@ int dev_change_proto_down_generic(struct net_device *dev, bool proto_down)
 }
 EXPORT_SYMBOL(dev_change_proto_down_generic);
 
+struct bpf_xdp_link {
+	struct bpf_link link;
+	struct net_device *dev; /* protected by rtnl_lock, no refcnt held */
+	int flags;
+};
+
 static enum bpf_xdp_mode dev_xdp_mode(u32 flags)
 {
 	if (flags & XDP_FLAGS_HW_MODE)
@@ -7244,9 +7250,19 @@ static bpf_op_t dev_xdp_bpf_op(struct net_device *dev, enum bpf_xdp_mode mode)
 	};
 }
 
+static struct bpf_xdp_link *dev_xdp_link(struct net_device *dev,
+					 enum bpf_xdp_mode mode)
+{
+	return dev->xdp_state[mode].link;
+}
+
 static struct bpf_prog *dev_xdp_prog(struct net_device *dev,
 				     enum bpf_xdp_mode mode)
 {
+	struct bpf_xdp_link *link = dev_xdp_link(dev, mode);
+
+	if (link)
+		return link->link.prog;
 	return dev->xdp_state[mode].prog;
 }
 
@@ -7257,9 +7273,17 @@ u32 dev_xdp_prog_id(struct net_device *dev, enum bpf_xdp_mode mode)
 	return prog ? prog->aux->id : 0;
 }
 
+static void dev_xdp_set_link(struct net_device *dev, enum bpf_xdp_mode mode,
+			     struct bpf_xdp_link *link)
+{
+	dev->xdp_state[mode].link = link;
+	dev->xdp_state[mode].prog = NULL;
+}
+
 static void dev_xdp_set_prog(struct net_device *dev, enum bpf_xdp_mode mode,
 			     struct bpf_prog *prog)
 {
+	dev->xdp_state[mode].link = NULL;
 	dev->xdp_state[mode].prog = prog;
 }
 
@@ -7297,6 +7321,7 @@ static int dev_xdp_install(struct net_device *dev, enum bpf_xdp_mode mode,
 
 static void dev_xdp_uninstall(struct net_device *dev)
 {
+	struct bpf_xdp_link *link;
 	struct bpf_prog *prog;
 	enum bpf_xdp_mode mode;
 	bpf_op_t bpf_op;
@@ -7314,13 +7339,20 @@ static void dev_xdp_uninstall(struct net_device *dev)
 
 		WARN_ON(dev_xdp_install(dev, mode, bpf_op, 0, NULL));
 
-		bpf_prog_put(prog);
-		dev_xdp_set_prog(dev, mode, NULL);
+		/* auto-detach link from net device */
+		link = dev_xdp_link(dev, mode);
+		if (link)
+			link->dev = NULL;
+		else
+			bpf_prog_put(prog);
+
+		dev_xdp_set_link(dev, mode, NULL);
 	}
 }
 
-static int dev_xdp_attach(struct net_device *dev, struct bpf_prog *new_prog, 
-			  struct bpf_prog *old_prog, u32 flags)
+static int dev_xdp_attach(struct net_device *dev, struct bpf_xdp_link *link, 
+              struct bpf_prog *new_prog, struct bpf_prog *old_prog, 
+			  u32 flags)
 {
 	struct bpf_prog *cur_prog;
 	enum bpf_xdp_mode mode;
@@ -7329,6 +7361,13 @@ static int dev_xdp_attach(struct net_device *dev, struct bpf_prog *new_prog,
 
 	ASSERT_RTNL();
 
+	/* either link or prog attachment, never both */
+	if (link && (new_prog || old_prog))
+		return -EINVAL;
+	/* link supports only XDP mode flags */
+	if (link && (flags & ~XDP_FLAGS_MODES)) {
+		return -EINVAL;
+	}
 	/* just one XDP mode bit should be set, zero defaults to SKB mode */
 	if (hweight32(flags & XDP_FLAGS_MODES) > 1) {
 		return -EINVAL;
@@ -7339,13 +7378,26 @@ static int dev_xdp_attach(struct net_device *dev, struct bpf_prog *new_prog,
 	}
 
 	mode = dev_xdp_mode(flags);
+	/* can't replace attached link */
+	if (dev_xdp_link(dev, mode)) {
+		return -EBUSY;
+	}
+
 	cur_prog = dev_xdp_prog(dev, mode);
+	/* can't replace attached prog with link */
+	if (link && cur_prog) {
+		return -EBUSY;
+	}
 	if ((flags & XDP_FLAGS_REPLACE) && cur_prog != old_prog) {
 		return -EEXIST;
 	}
 	if ((flags & XDP_FLAGS_UPDATE_IF_NOEXIST) && cur_prog) {
 		return -EBUSY;
 	}
+
+	/* put effective new program into new_prog */
+	if (link)
+		new_prog = link->link.prog;
 
 	if (new_prog) {
 		bool offload = mode == XDP_MODE_HW;
@@ -7378,17 +7430,116 @@ static int dev_xdp_attach(struct net_device *dev, struct bpf_prog *new_prog,
 			return err;
 	}
 
-	dev_xdp_set_prog(dev, mode, new_prog);
+	if (link)
+		dev_xdp_set_link(dev, mode, link);
+	else
+		dev_xdp_set_prog(dev, mode, new_prog);
 	if (cur_prog)
 		bpf_prog_put(cur_prog);
 
 	return 0;
 }
 
+static int dev_xdp_attach_link(struct net_device *dev,
+			       struct bpf_xdp_link *link)
+{
+	return dev_xdp_attach(dev, link, NULL, NULL, link->flags);
+}
+
+static int dev_xdp_detach_link(struct net_device *dev, struct bpf_xdp_link *link)
+{
+	enum bpf_xdp_mode mode;
+	bpf_op_t bpf_op;
+
+	ASSERT_RTNL();
+
+	mode = dev_xdp_mode(link->flags);
+	if (dev_xdp_link(dev, mode) != link)
+		return -EINVAL;
+
+	bpf_op = dev_xdp_bpf_op(dev, mode);
+	WARN_ON(dev_xdp_install(dev, mode, bpf_op, 0, NULL));
+	dev_xdp_set_link(dev, mode, NULL);
+	return 0;
+}
+
+static void bpf_xdp_link_release(struct bpf_link *link)
+{
+	struct bpf_xdp_link *xdp_link = container_of(link, struct bpf_xdp_link, link);
+
+	rtnl_lock();
+
+	/* if racing with net_device's tear down, xdp_link->dev might be
+	 * already NULL, in which case link was already auto-detached
+	 */
+	if (xdp_link->dev)
+		WARN_ON(dev_xdp_detach_link(xdp_link->dev, xdp_link));
+
+	rtnl_unlock();
+}
+
+static void bpf_xdp_link_dealloc(struct bpf_link *link)
+{
+	struct bpf_xdp_link *xdp_link = container_of(link, struct bpf_xdp_link, link);
+
+	kfree(xdp_link);
+}
+
+static const struct bpf_link_ops bpf_xdp_link_lops = {
+	.release = bpf_xdp_link_release,
+	.dealloc = bpf_xdp_link_dealloc,
+};
+
+int bpf_xdp_link_attach(const union bpf_attr *attr, struct bpf_prog *prog)
+{
+	struct net *net = current->nsproxy->net_ns;
+	struct bpf_link_primer link_primer;
+	struct bpf_xdp_link *link;
+	struct net_device *dev;
+	int err, fd;
+
+	dev = dev_get_by_index(net, attr->link_create.target_ifindex);
+	if (!dev)
+		return -EINVAL;
+
+	link = kzalloc(sizeof(*link), GFP_USER);
+	if (!link) {
+		err = -ENOMEM;
+		goto out_put_dev;
+	}
+
+	bpf_link_init(&link->link, BPF_LINK_TYPE_XDP, &bpf_xdp_link_lops, prog);
+	link->dev = dev;
+	link->flags = attr->link_create.flags;
+
+	err = bpf_link_prime(&link->link, &link_primer);
+	if (err) {
+		kfree(link);
+		goto out_put_dev;
+	}
+
+	rtnl_lock();
+	err = dev_xdp_attach_link(dev, link);
+	rtnl_unlock();
+
+	if (err) {
+		bpf_link_cleanup(&link_primer);
+		goto out_put_dev;
+	}
+
+	fd = bpf_link_settle(&link_primer);
+	/* link itself doesn't hold dev's refcnt to not complicate shutdown */
+	dev_put(dev);
+	return fd;
+
+out_put_dev:
+	dev_put(dev);
+	return err;
+}
+
 /**
  *	dev_change_xdp_fd - set or clear a bpf program for a device rx path
  *	@dev: device
- *	@extack: netlink extended ack
  *	@fd: new program fd or negative value to clear
  *	@expected_fd: old program fd that userspace expects to replace or clear
  *	@flags: xdp-related flags
@@ -7420,7 +7571,7 @@ int dev_change_xdp_fd(struct net_device *dev, int fd, int expected_fd, u32 flags
 		}
 	}
 
-	err = dev_xdp_attach(dev, new_prog, old_prog, flags);
+	err = dev_xdp_attach(dev, NULL, new_prog, old_prog, flags);
 
 err_out:
 	if (err && new_prog)
