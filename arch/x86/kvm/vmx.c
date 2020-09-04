@@ -33,7 +33,7 @@
 #include <linux/slab.h>
 #include <linux/tboot.h>
 #include <linux/hrtimer.h>
-#include <linux/frame.h>
+#include <linux/objtool.h>
 #include <linux/nospec.h>
 #include "kvm_cache_regs.h"
 #include "x86.h"

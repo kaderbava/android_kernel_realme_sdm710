@@ -74,7 +74,7 @@
 #include <linux/init_task.h>
 #include <linux/context_tracking.h>
 #include <linux/compiler.h>
-#include <linux/frame.h>
+#include <linux/objtool.h>
 #include <linux/prefetch.h>
 #include <linux/irq.h>
 #include <linux/cpufreq_times.h>
