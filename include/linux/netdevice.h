@@ -1199,6 +1199,9 @@ struct netdev_bpf {
  *	queue id bound to an AF_XDP socket. The flags field specifies if
  *	only RX, only Tx, or both should be woken up using the flags
  *	XDP_WAKEUP_RX and XDP_WAKEUP_TX.
+ * struct net_device *(*ndo_get_peer_dev)(struct net_device *dev);
+ *	If a device is paired with a peer device, return the peer instance.
+ *	The caller must be under RCU read context.
  */
 struct net_device_ops {
 	int			(*ndo_init)(struct net_device *dev);
@@ -1394,6 +1397,7 @@ struct net_device_ops {
 						u32 flags);
 	int			(*ndo_xsk_wakeup)(struct net_device *dev,
 						  u32 queue_id, u32 flags);
+	struct net_device *	(*ndo_get_peer_dev)(struct net_device *dev);
 };
 
 /**
