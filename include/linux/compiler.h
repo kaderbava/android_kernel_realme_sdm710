@@ -501,10 +501,6 @@ unsigned long read_word_at_a_time(const void *addr)
 #define __assume_aligned(a, ...)
 #endif
 
-#ifndef __no_fgcse
-# define __no_fgcse
-#endif
-
 /* Are two types/vars the same type (ignoring qualifiers)? */
 #ifndef __same_type
 # define __same_type(a, b) __builtin_types_compatible_p(typeof(a), typeof(b))
