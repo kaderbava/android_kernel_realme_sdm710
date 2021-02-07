@@ -1245,6 +1245,11 @@ static inline bool bpf_allow_ptr_leaks(void)
 	return perfmon_capable();
 }
 
+static inline bool bpf_allow_uninit_stack(void)
+{
+	return perfmon_capable();
+}
+
 static inline bool bpf_allow_ptr_to_map_access(void)
 {
 	return perfmon_capable();
