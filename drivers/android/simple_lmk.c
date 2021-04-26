@@ -266,7 +266,10 @@ void simple_lmk_mm_freed(struct mm_struct *mm)
 {
 	int i;
 
-	read_lock(&mm_free_lock);
+	/* Nothing to do when reclaim is starting or ending */
+	if (!read_trylock(&mm_free_lock))
+		return;
+
 	for (i = 0; i < nr_victims; i++) {
 		if (victims[i].mm == mm) {
 			victims[i].mm = NULL;
