@@ -3465,9 +3465,11 @@ static int do_read_fault(struct fault_env *fe, pgoff_t pgoff)
 	 * something).
 	 */
 	if (vma->vm_ops->map_pages && fault_around_bytes >> PAGE_SHIFT > 1) {
-		ret = do_fault_around(fe, pgoff);
-		if (ret)
-			return ret;
+		if (likely(!userfaultfd_minor(fe->vma))) {
+			ret = do_fault_around(fe, pgoff);
+			if (ret)
+				return ret;
+		}
 	}
 
 	ret = __do_fault(fe, pgoff, NULL, &fault_page, NULL);
