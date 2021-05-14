@@ -54,6 +54,12 @@ uffdio_api.features and uffdio_api.ioctls two 64bit bitmasks of
 respectively all the available features of the read(2) protocol and
 the generic ioctl available.
 
+UFFD_FEATURE_MINOR_HUGETLBFS reports support for minor-fault
+registration on hugetlbfs mappings. UFFD_FEATURE_MINOR_SHMEM reports
+the analogous support for shmem mappings. Register such ranges with
+UFFDIO_REGISTER_MODE_MINOR and resolve their faults with
+UFFDIO_CONTINUE to install an existing page from the page cache.
+
 Once the userfaultfd has been enabled the UFFDIO_REGISTER ioctl should
 be invoked (if present in the returned uffdio_api.ioctls bitmask) to
 register a memory range in the userfaultfd by setting the
