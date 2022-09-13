@@ -140,7 +140,7 @@ static FORCE_INLINE void LZ4_memcpy_using_offset(BYTE *dstPtr,
  * does not know end of input
  * presumes input is well formed
  * note : will consume at least one byte */
-size_t read_long_length_no_check(const BYTE **pp)
+static size_t read_long_length_no_check(const BYTE **pp)
 {
 	size_t b, l = 0;
 	do {
@@ -974,7 +974,7 @@ ssize_t LZ4_arm64_decompress_safe(const void *source,
 	return __LZ4_decompress_generic(source, dest, srcPtr, dstPtr, inputSize, outputSize, decode_full_block, noDict, (BYTE *)dest, NULL, 0);
 }
 
-int LZ4_decompress_fast(const char *source, char *dest, int originalSize)
+static int LZ4_decompress_fast(const char *source, char *dest, int originalSize)
 {
 	return LZ4_decompress_unsafe_generic((const BYTE *)source, (BYTE *)dest,
 					     originalSize, 0, NULL, 0);
@@ -1127,7 +1127,7 @@ int LZ4_decompress_safe_continue(LZ4_streamDecode_t *LZ4_streamDecode,
 	return result;
 }
 
-int LZ4_decompress_fast_continue(LZ4_streamDecode_t *LZ4_streamDecode,
+static int LZ4_decompress_fast_continue(LZ4_streamDecode_t *LZ4_streamDecode,
 				 const char *source, char *dest,
 				 int originalSize)
 {
@@ -1174,7 +1174,7 @@ int LZ4_decompress_fast_continue(LZ4_streamDecode_t *LZ4_streamDecode,
 	return result;
 }
 
-int LZ4_decompress_safe_usingDict(const char *source, char *dest,
+static int LZ4_decompress_safe_usingDict(const char *source, char *dest,
 				  int compressedSize, int maxOutputSize,
 				  const char *dictStart, int dictSize)
 {
@@ -1193,7 +1193,7 @@ int LZ4_decompress_safe_usingDict(const char *source, char *dest,
 						dictSize);
 }
 
-int LZ4_decompress_fast_usingDict(const char *source, char *dest,
+static int LZ4_decompress_fast_usingDict(const char *source, char *dest,
 				  int originalSize, const char *dictStart,
 				  int dictSize)
 {
@@ -1211,12 +1211,8 @@ EXPORT_SYMBOL(LZ4_decompress_safe);
 EXPORT_SYMBOL(LZ4_decompress_safe_partial);
 EXPORT_SYMBOL(LZ4_arm64_decompress_safe);
 EXPORT_SYMBOL(LZ4_arm64_decompress_safe_partial);
-EXPORT_SYMBOL(LZ4_decompress_fast);
 EXPORT_SYMBOL(LZ4_setStreamDecode);
 EXPORT_SYMBOL(LZ4_decompress_safe_continue);
-EXPORT_SYMBOL(LZ4_decompress_fast_continue);
-EXPORT_SYMBOL(LZ4_decompress_safe_usingDict);
-EXPORT_SYMBOL(LZ4_decompress_fast_usingDict);
 
 MODULE_LICENSE("Dual BSD/GPL");
 MODULE_DESCRIPTION("LZ4 decompressor");
