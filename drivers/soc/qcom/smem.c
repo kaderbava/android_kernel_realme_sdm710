@@ -85,6 +85,17 @@
 /* Max number of processors/hosts in a system */
 #define SMEM_HOST_COUNT		9
 
+/* Entry range check
+ * ptr >= start : Checks if ptr is greater than the start of access region
+ * ptr + size >= ptr: Check for integer overflow (On 32bit system where ptr
+ * and size are 32bits, ptr + size can wrap around to be a small integer)
+ * ptr + size <= end: Checks if ptr+size is less than the end of access region
+ */
+#define IN_PARTITION_RANGE(ptr, size, start, end)		\
+	(((void *)(ptr) >= (void *)(start)) &&			\
+	 (((void *)(ptr) + (size)) >= (void *)(ptr)) &&	\
+	 (((void *)(ptr) + (size)) <= (void *)(end)))
+
 /**
   * struct smem_proc_comm - proc_comm communication struct (legacy)
   * @command:	current command to be executed
@@ -313,7 +324,8 @@ static int qcom_smem_alloc_private(struct qcom_smem *smem,
 	end = phdr_to_last_private_entry(phdr);
 	cached = phdr_to_first_cached_entry(phdr);
 
-	if (WARN_ON((void *)end > p_end || (void *)cached > p_end))
+	if (WARN_ON(!IN_PARTITION_RANGE(end, 0, phdr, cached) ||
+						cached > p_end))
 		return -EINVAL;
 
 	while (hdr < end) {
@@ -484,6 +496,7 @@ static void *qcom_smem_get_private(struct qcom_smem *smem,
 {
 	struct smem_partition_header *phdr;
 	struct smem_private_entry *e, *end;
+	struct smem_private_entry *next_e;
 	void *item_ptr, *p_end;
 	u32 partition_size;
 	u32 padding_data;
@@ -499,7 +512,7 @@ static void *qcom_smem_get_private(struct qcom_smem *smem,
 	if (WARN_ON((void *)end > p_end))
 		return ERR_PTR(-EINVAL);
 
-	while (e < end) {
+	while ((e < end) && ((e + 1) < end)) {
 		if (e->canary != SMEM_PRIVATE_CANARY) {
 			dev_err(smem->dev,
 				"Found invalid canary in host %d:%d partition\n",
@@ -508,20 +521,22 @@ static void *qcom_smem_get_private(struct qcom_smem *smem,
 		}
 
 		if (le16_to_cpu(e->item) == item) {
-			if (size != NULL) {
-				e_size = le32_to_cpu(e->size);
-				padding_data = le16_to_cpu(e->padding_data);
+			e_size = le32_to_cpu(e->size);
+			padding_data = le16_to_cpu(e->padding_data);
 
-				if (e_size < partition_size
-				    && padding_data < e_size)
-					*size = e_size - padding_data;
-				else
-					return ERR_PTR(-EINVAL);
-			}
+			if (e_size < partition_size && padding_data < e_size)
+				entry_size = e_size - padding_data;
+			else
+				return ERR_PTR(-EINVAL);
 
 			item_ptr = entry_to_item(e);
-			if (WARN_ON(item_ptr > p_end))
+
+			if (WARN_ON(!IN_PARTITION_RANGE(item_ptr, entry_size,
+								    e, end)))
 				return ERR_PTR(-EINVAL);
+
+			if (size != NULL)
+				*size = entry_size;
 
 			return item_ptr;
 		}
