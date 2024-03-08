@@ -464,6 +464,8 @@ static __always_inline ssize_t __mcopy_atomic(struct mm_struct *dst_mm,
 	/*
 	 * Sanitize the command parameters:
 	 */
+	BUILD_BUG_ON(UFFDIO_ZEROPAGE_MODE_MMAP_TRYLOCK !=
+		     UFFDIO_COPY_MODE_MMAP_TRYLOCK);
 	BUG_ON(dst_start & ~PAGE_MASK);
 	BUG_ON(len & ~PAGE_MASK);
 
@@ -476,14 +478,19 @@ static __always_inline ssize_t __mcopy_atomic(struct mm_struct *dst_mm,
 	copied = 0;
 	page = NULL;
 retry:
-	down_read(&dst_mm->mmap_sem);
+	err = -EAGAIN;
+	if (mode & UFFDIO_MODE_MMAP_TRYLOCK) {
+		if (!down_read_trylock(&dst_mm->mmap_sem))
+			goto out;
+	} else {
+		down_read(&dst_mm->mmap_sem);
+	}
 
 	/*
 	 * If memory mappings are changing because of non-cooperative
 	 * operation (e.g. mremap) running in parallel, bail out and
 	 * request the user to retry later
 	 */
-	err = -EAGAIN;
 	if (mmap_changing && READ_ONCE(*mmap_changing))
 		goto out_unlock;
 
@@ -638,10 +645,10 @@ ssize_t mcopy_atomic(struct mm_struct *dst_mm, unsigned long dst_start,
 }
 
 ssize_t mfill_zeropage(struct mm_struct *dst_mm, unsigned long start,
-		       unsigned long len, bool *mmap_changing)
+		       unsigned long len, bool *mmap_changing, __u64 mode)
 {
 	return __mcopy_atomic(dst_mm, start, 0, len, MCOPY_ATOMIC_ZEROPAGE,
-			      mmap_changing, 0);
+			      mmap_changing, mode);
 }
 
 ssize_t mcopy_continue(struct mm_struct *dst_mm, unsigned long start,
