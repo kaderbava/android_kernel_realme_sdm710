@@ -62,8 +62,6 @@ unsigned long __stack_chk_guard __ro_after_init;
 EXPORT_SYMBOL(__stack_chk_guard);
 #endif
 
-#ifndef CONFIG_OPLUS_FEATURE_QCOM_MINIDUMP_ENHANCE
-
 /*
  * Function pointers to optional machine specific functions
  */
@@ -71,19 +69,6 @@ void (*pm_power_off)(void);
 EXPORT_SYMBOL_GPL(pm_power_off);
 
 void (*arm_pm_restart)(enum reboot_mode reboot_mode, const char *cmd);
-
-#else
-
-#include <soc/oplus/system/qcom_minidump_enhance.h>
-
-/*
- * Function pointers to optional machine specific functions
- */
-void (*pm_power_off)(void) = do_poweroff_early;
-EXPORT_SYMBOL_GPL(pm_power_off);
-void (*arm_pm_restart)(enum reboot_mode reboot_mode, const char *cmd) = do_restart_early;
-
-#endif /* CONFIG_OPLUS_FEATURE_QCOM_MINIDUMP_ENHANCE */
 
 /*
  * This is our default idle handler.
@@ -270,11 +255,6 @@ void __show_regs(struct pt_regs *regs)
 	print_symbol("LR is at %s\n", lr);
 	printk("pc : [<%016llx>] lr : [<%016llx>] pstate: %08llx\n",
 	       regs->pc, lr, regs->pstate);
-#ifdef CONFIG_OPLUS_FEATURE_QCOM_MINIDUMP_ENHANCE //wen.luo@bsp.kernel.stability add for dump parser addr
-	printk("pc : %016llx\n", regs->pc);
-	printk("lr : %016llx\n", lr);
-#endif
-
 	printk("sp : %016llx\n", sp);
 
 	i = top_reg;
