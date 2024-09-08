@@ -2661,12 +2661,6 @@ struct reclaim_param {
 	int nr_to_reclaim;
 	/* pages reclaimed */
 	int nr_reclaimed;
-#ifdef CONFIG_PROCESS_RECLAIM_ENHANCE
-	/* flag that relcaim inactive pages only */
-	bool inactive_lru;
-	/* the target reclaimed process */
-	struct task_struct *reclaimed_task;
-#endif
 };
 extern struct reclaim_param reclaim_task_anon(struct task_struct *task,
 		int nr_to_reclaim);
