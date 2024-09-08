@@ -13,7 +13,6 @@ obj-$(CONFIG_OPLUS_FEATURE_OPROJECT) 	+= oplus_project/
 obj-$(CONFIG_OPLUS_FEATURE_QCOM_MINIDUMP_ENHANCE) 	+= qcom_minidump/
 obj-$(CONFIG_OPLUS_FEATURE_HUNG_TASK_ENHANCE) += hung_task_enhance/
 obj-$(CONFIG_OPLUS_FEATURE_PHOENIX)     += oppo_phoenix/
-obj-$(CONFIG_OPLUS_FEATURE_PMIC_MONITOR)     += oppo_pmic_monitor/
 obj-$(CONFIG_OPLUS_FEATURE_SAUPWK)     += oppo_saupwk/
 obj-$(CONFIG_OPLUS_FEATURE_DUMP_DEVICE_INFO)	+=  dump_device_info/
 obj-$(CONFIG_OPLUS_FEATURE_RECORD_MDMRST)     += mdmrst/
