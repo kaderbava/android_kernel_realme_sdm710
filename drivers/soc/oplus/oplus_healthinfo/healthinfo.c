@@ -822,9 +822,6 @@ extern int __weak create_vmalloc_debug(struct proc_dir_entry *parent);
 /* multi kswapd support create proc fs file node */
 extern int create_kswapd_threads_proc(struct proc_dir_entry *parent);
 #endif
-#ifdef CONFIG_VIRTUAL_RESERVE_MEMORY
-int create_reserved_area_enable_proc(struct proc_dir_entry *parent);
-#endif
 static int __init healthinfo_init(void)
 {
 	int ret = 0;
@@ -901,11 +898,6 @@ static int __init healthinfo_init(void)
 	}
 #endif
 #endif
-#endif
-#ifdef CONFIG_VIRTUAL_RESERVE_MEMORY
-	ret = create_reserved_area_enable_proc(healthinfo);
-	if (ret)
-		goto ERROR_INIT_VERSION;
 #endif
 
 /****** thresh update ******/
