@@ -107,9 +107,6 @@ obj-$(CONFIG_PROCESS_RECLAIM)	+= process_reclaim.o
 #/* add new interface for process memory reclaim*/
 obj-$(CONFIG_PROCESS_RECLAIM_ENHANCE) += process_mm_reclaim.o
 #endif /*defined(CONFIG_PROCESS_RECLAIM_ENHANCE)*/
-#ifdef VENDOR_EDIT
-obj-y += oplus_healthinfo/
-#endif /*VENDOR_EDIT*/
 #if defined(OPLUS_FEATURE_VIRTUAL_RESERVE_MEMORY)
 #/* add for record reserved area use count*/
 obj-$(CONFIG_VIRTUAL_RESERVE_MEMORY) += reserve_area.o
