@@ -540,11 +540,6 @@ struct mm_struct {
 	atomic_long_t hugetlb_usage;
 #endif
 	struct work_struct async_put_work;
-#if defined(OPLUS_FEATURE_VIRTUAL_RESERVE_MEMORY) && defined(CONFIG_VIRTUAL_RESERVE_MEMORY)
-	unsigned long va_feature_rnd;
-	unsigned int zygoteheap_in_MB;
-	int va_feature;
-#endif
 };
 
 static inline void mm_init_cpumask(struct mm_struct *mm)
