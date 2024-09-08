@@ -18,8 +18,4 @@ source "drivers/soc/oplus/Kconfig"
 #Gen.Yin@BSP.Power.Thermal 2021/03/16 add for horae
 source "drivers/soc/oplus/thermal/Kconfig"
 #endif /* OPLUS_FEATURE_THERMAL_HORAE */
-
-#ifdef OPLUS_FEATURE_LOWMEM_DBG
-source "drivers/soc/oplus/lowmem_dbg/Kconfig"
-#endif /* OPLUS_FEATURE_LOWMEM_DBG */
 endmenu
