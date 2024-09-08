@@ -400,8 +400,6 @@ static inline bool __cmpxchg_double_slab(struct kmem_cache *s, struct page *page
 	return false;
 }
 
-#ifdef VENDOR_EDIT
-#if defined(CONFIG_SLUB_DEBUG) || defined(CONFIG_SLAB_STAT_DEBUG)
 /* Tracking of the number of slabs for debugging purposes */
 static inline unsigned long slabs_node(struct kmem_cache *s, int node)
 {
@@ -437,17 +435,6 @@ static inline void dec_slabs_node(struct kmem_cache *s, int node, int objects)
 	atomic_long_dec(&n->nr_slabs);
 	atomic_long_sub(objects, &n->total_objects);
 }
-#else
-static inline unsigned long slabs_node(struct kmem_cache *s, int node)
-							{ return 0; }
-static inline unsigned long node_nr_slabs(struct kmem_cache_node *n)
-							{ return 0; }
-static inline void inc_slabs_node(struct kmem_cache *s, int node,
-							int objects) {}
-static inline void dec_slabs_node(struct kmem_cache *s, int node,
-							int objects) {}
-#endif /* CONFIG_SLUB_DEBUG || CONFIG_SLAB_STAT_DEBUG */
-#endif /* VENDOR_EDIT */
 
 static inline bool cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
 		void *freelist_old, unsigned long counters_old,
@@ -2555,7 +2542,7 @@ static inline int node_match(struct page *page, int node)
 	return 1;
 }
 
-#if defined(CONFIG_SLUB_DEBUG) || (defined(VENDOR_EDIT) && defined(CONFIG_SLAB_STAT_DEBUG))
+#ifdef CONFIG_SLUB_DEBUG
 static int count_free(struct page *page)
 {
 	return page->objects - page->inuse;
@@ -3527,7 +3514,7 @@ init_kmem_cache_node(struct kmem_cache_node *n)
 	spin_lock_init(&n->list_lock);
 	INIT_LIST_HEAD(&n->partial);
 
-#if defined(CONFIG_SLUB_DEBUG) || (defined(VENDOR_EDIT) && defined(CONFIG_SLAB_STAT_DEBUG))
+#ifdef CONFIG_SLUB_DEBUG
 	atomic_long_set(&n->nr_slabs, 0);
 	atomic_long_set(&n->total_objects, 0);
 	INIT_LIST_HEAD(&n->full);

@@ -47,9 +47,6 @@
 #include "ion.h"
 #include "ion_priv.h"
 #include "compat_ion.h"
-#if defined(VENDOR_EDIT) && defined(CONFIG_OPLUS_HEALTHINFO) && defined (CONFIG_OPLUS_MEM_MONITOR)
-#include <linux/oplus_healthinfo/memory_monitor.h>
-#endif /*VENDOR_EDIT*/
 
 #ifdef VENDOR_EDIT
 #include <linux/oplus_healthinfo/ion.h>
