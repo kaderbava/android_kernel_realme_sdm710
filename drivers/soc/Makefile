@@ -24,7 +24,3 @@ obj-$(CONFIG_HORAE_THERMAL_SHELL) += oplus/thermal/
 #endif /* OPLUS_FEATURE_THERMAL_HORAE */
 
 obj-y	+= oplus/
-
-#ifdef OPLUS_FEATURE_LOWMEM_DBG
-obj-$(CONFIG_OPLUS_FEATURE_LOWMEM_DBG)  +=  oplus/lowmem_dbg/
-#endif /* OPLUS_FEATURE_LOWMEM_DBG */
