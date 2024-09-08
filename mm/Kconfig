@@ -842,11 +842,3 @@ config SPECULATIVE_PAGE_FAULT
 	 detected or because underlying PMD or PTE tables are not yet
 	 allocating, it is failing its processing and a classic page fault
 	 is then tried.
-
-#ifdef OPLUS_FEATURE_VIRTUAL_RESERVE_MEMORY
-config VIRTUAL_RESERVE_MEMORY
-	bool "reserved vma for gpu emergency mmap"
-	default y
-	help
-	 support reserved vma for gpu emergency mmap.
-#endif
