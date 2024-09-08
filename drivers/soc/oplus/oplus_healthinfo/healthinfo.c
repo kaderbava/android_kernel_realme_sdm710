@@ -18,9 +18,6 @@
 #include <linux/blkdev.h>
 #include <linux/ktime.h>
 #include <linux/seq_file.h>
-#ifdef CONFIG_PROCESS_RECLAIM_ENHANCE
-#include <linux/process_mm_reclaim.h>
-#endif
 #include <linux/version.h>
 #define BUFFER_SIZE_S 256
 #define BUFFER_SIZE_M 512
@@ -907,12 +904,6 @@ static int __init healthinfo_init(void)
 #endif
 #ifdef CONFIG_VIRTUAL_RESERVE_MEMORY
 	ret = create_reserved_area_enable_proc(healthinfo);
-	if (ret)
-		goto ERROR_INIT_VERSION;
-#endif
-
-#ifdef CONFIG_PROCESS_RECLAIM_ENHANCE
-	ret = create_process_reclaim_enable_proc(healthinfo);
 	if (ret)
 		goto ERROR_INIT_VERSION;
 #endif

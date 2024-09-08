@@ -1693,14 +1693,6 @@ struct tlbflush_unmap_batch {
 	bool writable;
 };
 
-#ifdef CONFIG_PROCESS_RECLAIM_ENHANCE
-/* Record process reclaim memory information */
-union reclaim_limit {
-	unsigned long stop_jiffies;
-	unsigned long stop_scan_addr;
-};
-#endif
-
 struct task_struct {
 #ifdef CONFIG_THREAD_INFO_IN_TASK
 	/*
@@ -2203,10 +2195,6 @@ struct task_struct {
 	/* number of pages to reclaim on returning to userland */
 	unsigned int memcg_nr_pages_over_high;
 #endif
-#ifdef CONFIG_PROCESS_RECLAIM_ENHANCE
-	/*  Record process reclaim infor  */
-	union reclaim_limit reclaim;
-#endif
 #ifdef CONFIG_UPROBES
 	struct uprobe_task *utask;
 #endif
@@ -2580,12 +2568,6 @@ extern void thread_group_cputime_adjusted(struct task_struct *p, cputime_t *ut, 
 #define PF_MUTEX_TESTER	0x20000000	/* Thread belongs to the rt mutex tester */
 #define PF_FREEZER_SKIP	0x40000000	/* Freezer should not count it as freezable */
 #define PF_SUSPEND_TASK 0x80000000      /* this thread called freeze_processes and should not be frozen */
-#ifdef CONFIG_PROCESS_RECLAIM_ENHANCE
-/* flag that current task is process reclaimer */
-#define PF_RECLAIM_SHRINK	0x02000000	/* Flag the task is memory compresser */
-
-#define current_is_reclaimer() (current->flags & PF_RECLAIM_SHRINK)
-#endif
 
 /*
  * Only the _current_ task can read/write to tsk->flags, but other

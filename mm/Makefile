@@ -103,10 +103,6 @@ obj-$(CONFIG_FRAME_VECTOR) += frame_vector.o
 obj-$(CONFIG_DEBUG_PAGE_REF) += debug_page_ref.o
 obj-$(CONFIG_HARDENED_USERCOPY) += usercopy.o
 obj-$(CONFIG_PROCESS_RECLAIM)	+= process_reclaim.o
-#if defined(CONFIG_PROCESS_RECLAIM_ENHANCE)
-#/* add new interface for process memory reclaim*/
-obj-$(CONFIG_PROCESS_RECLAIM_ENHANCE) += process_mm_reclaim.o
-#endif /*defined(CONFIG_PROCESS_RECLAIM_ENHANCE)*/
 #if defined(OPLUS_FEATURE_VIRTUAL_RESERVE_MEMORY)
 #/* add for record reserved area use count*/
 obj-$(CONFIG_VIRTUAL_RESERVE_MEMORY) += reserve_area.o
