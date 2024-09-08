@@ -31,10 +31,6 @@ obj-$(CONFIG_OPLUS_OPPO_GPIO)    +=  oppo_gpio/
 obj-$(CONFIG_OPLUS_FEATURE_QCOM_PMICWD)     += qcom_pmicwd/
 #endif /* OPLUS_FEATURE_QCOM_PMICWD */
 
-#ifdef OPLUS_FEATURE_MM_FEEDBACK
-obj-$(CONFIG_OPLUS_FEATURE_MM_FEEDBACK)         += oplus_mm_fb/
-#endif /* OPLUS_FEATURE_MM_FEEDBACK */
-
 #ifdef OPLUS_FEATURE_QCOM_WATCHDOG
 obj-$(CONFIG_OPLUS_FEATURE_QCOM_WATCHDOG)     += qcom_watchdog/
 #endif /* OPLUS_FEATURE_QCOM_WATCHDOG */
