@@ -834,6 +834,7 @@ config OPLUS_KEVENT_UPLOAD
 config OPLUS_SECURE_GUARD
 	def_bool y
 
+
 config CPU_NO_EFFICIENT_FFS
 	def_bool n
 
