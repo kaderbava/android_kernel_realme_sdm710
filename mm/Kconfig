@@ -861,10 +861,6 @@ config PROCESS_RECLAIM_ENHANCE
 		anonymous pages only.
 	 Any other vaule, please reference PROCESS_RECLAIM.
 
-#ifdef VENDOR_EDIT
-source "mm/oplus_healthinfo/Kconfig"
-#endif /*VENDOR_EDIT*/
-
 #ifdef OPLUS_FEATURE_VIRTUAL_RESERVE_MEMORY
 config VIRTUAL_RESERVE_MEMORY
 	bool "reserved vma for gpu emergency mmap"
