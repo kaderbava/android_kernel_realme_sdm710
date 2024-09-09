@@ -134,12 +134,6 @@ static unsigned long one_ul = 1;
 static unsigned long long_max = LONG_MAX;
 static int one_hundred = 100;
 
-#if defined(VENDOR_EDIT) && defined(CONFIG_OPPO_ZRAM_OPT)
-//yixue.ge@PSW.BSP.Kernel.Driver 20170720 add for add direct_vm_swappiness
-extern int direct_vm_swappiness;
-static int two_hundred = 200;
-#endif
-
 static int __maybe_unused one_thousand = 1000;
 #ifdef CONFIG_SCHED_WALT
 static int two_million = 2000000;
@@ -1722,26 +1716,8 @@ static struct ctl_table vm_table[] = {
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec_minmax,
 		.extra1		= &zero,
-#if defined(VENDOR_EDIT) && defined(CONFIG_OPPO_ZRAM_OPT)
-//yixue.ge@PSW.BSP.Kernel.Driver 20170720 add for add direct_vm_swappiness
-		.extra2		= &two_hundred,
-#else
 		.extra2		= &one_hundred,
-#endif
 	},
-	
-#if defined(VENDOR_EDIT) && defined(CONFIG_OPPO_ZRAM_OPT)
-//yixue.ge@PSW.BSP.Kernel.Driver 20170720 add for add direct_vm_swappiness
-	{
-		.procname	= "direct_swappiness",
-		.data		= &direct_vm_swappiness,
-		.maxlen 	= sizeof(direct_vm_swappiness),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec_minmax,
-		.extra1 	= &zero,
-		.extra2 	= &two_hundred,
-	},
-#endif
 	{
 		.procname       = "want_old_faultaround_pte",
 		.data           = &want_old_faultaround_pte,
