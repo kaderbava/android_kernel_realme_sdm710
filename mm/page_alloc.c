@@ -4466,6 +4466,7 @@ void show_free_areas(unsigned int filter)
 	int cpu;
 	struct zone *zone;
 	pg_data_t *pgdat;
+	int fls;
 
 	for_each_populated_zone(zone) {
 		if (skip_free_areas_node(filter, zone_to_nid(zone)))
@@ -4624,9 +4625,8 @@ void show_free_areas(unsigned int filter)
 		for (order = 0; order < MAX_ORDER; order++) {
         struct free_area *area = &zone->free_area[order];
 			int type;
-
-			nr[flc][order] = area->nr_free;
-			total += nr[flc][order] << order;
+			nr[fls] = area->nr_free;
+			total += nr[fls] << order;
 
 			types[order] = 0;
 			for (type = 0; type < MIGRATE_TYPES; type++) {
@@ -4637,8 +4637,8 @@ void show_free_areas(unsigned int filter)
 		spin_unlock_irqrestore(&zone->lock, flags);
 		for (order = 0; order < MAX_ORDER; order++) {
 			printk(KERN_CONT "%lu*%lukB ",
-			       nr[flc][order], K(1UL) << order);
-			if (nr[flc][order])
+			       nr[fls], K(1UL) << order);
+			if (nr[fls])
 				show_migration_types(types[order]);
 		}
 		printk(KERN_CONT "= %lukB\n", K(total));
