@@ -123,13 +123,6 @@ void nmi_panic(struct pt_regs *regs, const char *msg)
 }
 EXPORT_SYMBOL(nmi_panic);
 
-#ifdef VENDOR_EDIT
-extern int panic_flush_device_cache(int timeout);
-#endif  /*VENDOR_EDIT*/
-#ifdef VENDOR_EDIT
-extern int get_download_mode(void);
-#endif  /*VENDOR_EDIT*/
-
 /**
  *	panic - halt the system
  *	@fmt: The text string to print
@@ -185,10 +178,6 @@ void panic(const char *fmt, ...)
 	vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
 	dump_stack_minidump(0);
-#ifdef VENDOR_EDIT
-	if(!get_download_mode())
-		panic_flush_device_cache(2000);
-#endif
 	pr_emerg("Kernel panic - not syncing: %s\n", buf);
 #ifdef CONFIG_DEBUG_BUGVERBOSE
 	/*
