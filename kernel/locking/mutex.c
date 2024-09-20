@@ -47,10 +47,6 @@
 # include <asm/mutex.h>
 #endif
 
-#ifdef CONFIG_OPLUS_FEATURE_HUNG_TASK_ENHANCE
-#include <soc/oplus/system/oplus_signal.h>
-#endif
-
 void
 __mutex_init(struct mutex *lock, const char *name, struct lock_class_key *key)
 {
@@ -583,12 +579,7 @@ __mutex_lock_common(struct mutex *lock, long state, unsigned int subclass,
 		 * got a signal? (This code gets eliminated in the
 		 * TASK_UNINTERRUPTIBLE case.)
 		 */
-#ifdef CONFIG_OPLUS_FEATURE_HUNG_TASK_ENHANCE
-		if (unlikely(signal_pending_state(state, task))
-			|| hung_long_and_fatal_signal_pending(task)) {
-#else
 		if (unlikely(signal_pending_state(state, task))) {
-#endif
 			ret = -EINTR;
 			goto err;
 		}
