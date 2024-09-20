@@ -97,7 +97,6 @@ static void check_hung_task(struct task_struct *t, unsigned long timeout)
 		!strncmp(t->comm,"kworker/u16:1", TASK_COMM_LEN) ||
 		!strncmp(t->comm,"mdss_fb0", TASK_COMM_LEN)||
 		!strncmp(t->comm,"mdss_fb_ffl0", TASK_COMM_LEN)||
-		!strncmp(t->comm,"panic_flush", TASK_COMM_LEN)||
 		!strncmp(t->comm,"crtc_commit", DISP_TASK_COMM_LEN_MASK)||
 		!strncmp(t->comm,"crtc_event", DISP_TASK_COMM_LEN_MASK)){
 		return;
