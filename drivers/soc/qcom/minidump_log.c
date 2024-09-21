@@ -19,9 +19,6 @@
 #include <linux/thread_info.h>
 #include <soc/qcom/minidump.h>
 #include <asm/sections.h>
-#ifdef CONFIG_OPLUS_FEATURE_QCOM_MINIDUMP_ENHANCE
-#include <soc/oplus/system/qcom_minidump_enhance.h>
-#endif
 
 static void __init register_log_buf(void)
 {
@@ -105,9 +102,6 @@ static int __init msm_minidump_log_init(void)
 {
 	register_kernel_sections();
 	register_log_buf();
-#ifdef CONFIG_OPLUS_FEATURE_QCOM_MINIDUMP_ENHANCE	//yixue.ge@bsp.drv add for dump cpu contex for minidump
-	register_cpu_contex();
-#endif /* CONFIG_OPLUS_FEATURE_QCOM_MINIDUMP_ENHANCE */
 	return 0;
 }
 late_initcall(msm_minidump_log_init);
