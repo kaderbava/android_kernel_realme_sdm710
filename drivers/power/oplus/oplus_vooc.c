@@ -21,7 +21,6 @@
 #include "oplus_vooc.h"
 #include "oplus_gauge.h"
 #include "oplus_adapter.h"
-#include "oplus_debug_info.h"
 
 #define VOOC_NOTIFY_FAST_PRESENT			0x52
 #define VOOC_NOTIFY_FAST_ABSENT				0x54
@@ -575,17 +574,7 @@ int oplus_vooc_get_smaller_battemp_cooldown(int ret_batt, int ret_cool){
 		&& ret_cool > 0 && ret_cool < ARRAY_SIZE(multistepCurrent)+1){
 		ret_batt_current =  multistepCurrent[ret_batt -1];
 		ret_cool_current = multistepCurrent[ret_cool -1];
-		oplus_chg_debug_get_cooldown_current(ret_batt_current, ret_cool_current);
 		ret_cool_current = ret_cool_current < ret_batt_current ? ret_cool_current : ret_batt_current;
-		if(ret_cool > 0) {
-			if(ret_cool_current < ret_batt_current) {
-				/*set flag cool down by user */
-				oplus_chg_debug_set_cool_down_by_user(1);
-			} else {
-				/*clear flag cool down by user */
-				oplus_chg_debug_set_cool_down_by_user(0);
-			}
-		}
 		for(i = 0 ; i < ARRAY_SIZE(multistepCurrent); i++){
 			if(multistepCurrent[i] == ret_cool_current) {
 				if(chip) {
