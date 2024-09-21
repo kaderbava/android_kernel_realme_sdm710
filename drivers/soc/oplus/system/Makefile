@@ -5,7 +5,6 @@
 #
 
 obj-y 	+= platform.o
-obj-$(CONFIG_OPLUS_FEATURE_UBOOT_LOG) 	+= uboot_log/
 obj-$(CONFIG_OPLUS_FEATURE_OPROJECT) 	+= oplus_project/
 obj-$(CONFIG_OPLUS_FEATURE_SAUPWK)     += oppo_saupwk/
 obj-$(CONFIG_OPLUS_FEATURE_DUMP_DEVICE_INFO)	+=  dump_device_info/

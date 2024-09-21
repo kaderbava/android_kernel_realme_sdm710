@@ -3237,66 +3237,6 @@ out:
 }
 EXPORT_SYMBOL_GPL(kmsg_dump_get_buffer);
 
-#ifdef CONFIG_OPLUS_FEATURE_UBOOT_LOG
-#include <soc/oplus/system/uboot_utils.h>
-bool back_kmsg_dump_get_buffer(struct kmsg_dumper *dumper, bool syslog,
-			  char *buf, size_t size, size_t *len)
-{
-	unsigned long flags;
-	u64 seq;
-	u32 idx;
-	size_t l = 0;
-	bool ret = false;
-
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0))
-	logbuf_lock_irqsave(flags);
-#else
-	raw_spin_lock_irqsave(&logbuf_lock, flags);
-#endif
-	if (dumper->cur_seq < log_first_seq) {
-		l += scnprintf(buf + l,	size - l, "Lost some logs: cur_seq:%lld, log_first_seq:%lld\n", dumper->cur_seq, log_first_seq);
-		//messages are gone, move to first available one
-		dumper->cur_seq = log_first_seq;
-		dumper->cur_idx = log_first_idx;
-	}
-
-	// last entry
-	if (dumper->cur_seq >= dumper->next_seq) {
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0))
-		logbuf_unlock_irqrestore(flags);
-#else
-		raw_spin_unlock_irqrestore(&logbuf_lock, flags);
-#endif
-		goto out;
-	}
-
-
-	// record log form cur_seq until the buf is full
-	seq = dumper->cur_seq;
-	idx = dumper->cur_idx;
-	while (l + LOG_LINE_MAX + PREFIX_MAX < size && seq < dumper->next_seq) {
-		struct printk_log *msg = log_from_idx(idx);
-
-		l += msg_print_text(msg, syslog, buf + l, size - l);
-		idx = log_next(idx);
-		seq++;
-	}
-	dumper->cur_seq = seq;
-	dumper->cur_idx = idx;
-
-	ret = true;
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0))
-	logbuf_unlock_irqrestore(flags);
-#else
-	raw_spin_unlock_irqrestore(&logbuf_lock, flags);
-#endif
-out:
-	if (len)
-		*len = l;
-	return ret;
-}
-EXPORT_SYMBOL(back_kmsg_dump_get_buffer);
-#endif /*CONFIG_OPLUS_FEATURE_UBOOT_LOG*/
 
 /**
  * kmsg_dump_rewind_nolock - reset the interator (unlocked version)
