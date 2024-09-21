@@ -35,10 +35,6 @@
 #include <soc/qcom/watchdog.h>
 #include <soc/qcom/minidump.h>
 
-#ifdef CONFIG_OPLUS_FEATURE_QCOM_MINIDUMP_ENHANCE
-#include <soc/oppo/oppo_project.h>
-#include <soc/oplus/system/qcom_minidump_enhance.h>
-#endif
 #define EMERGENCY_DLOAD_MAGIC1    0x322A4F99
 #define EMERGENCY_DLOAD_MAGIC2    0xC67E4350
 #define EMERGENCY_DLOAD_MAGIC3    0x77777777
@@ -81,11 +77,7 @@ static const int download_mode;
 #endif
 
 static int in_panic;
-#ifndef CONFIG_OPLUS_FEATURE_QCOM_MINIDUMP_ENHANCE
-static int dload_type = SCM_DLOAD_FULLDUMP;
-#else
 int dload_type = SCM_DLOAD_FULLDUMP;
-#endif
 
 static void *dload_mode_addr;
 static bool dload_mode_enabled;
@@ -211,12 +203,6 @@ static void set_dload_mode(int on)
 	if (ret)
 		pr_err("Failed to set secure DLOAD mode: %d\n", ret);
 
-#ifdef CONFIG_OPLUS_FEATURE_QCOM_MINIDUMP_ENHANCE
-	if(dload_type == SCM_DLOAD_MINIDUMP)
-		__raw_writel(EMMC_DLOAD_TYPE, dload_type_addr);
-	else
-		__raw_writel(0, dload_type_addr);
-#endif /* CONFIG_OPLUS_FEATURE_QCOM_MINIDUMP_ENHANCE */
 
 	dload_mode_enabled = on;
 }
@@ -372,11 +358,6 @@ static void msm_restart_prepare(const char *cmd)
 		qpnp_pon_system_pwr_off(PON_POWER_OFF_WARM_RESET);
 		qpnp_pon_set_restart_reason(
 					PON_RESTART_REASON_KERNEL);
-#ifdef CONFIG_OPLUS_FEATURE_QCOM_MINIDUMP_ENHANCE
-		if (get_eng_version() == AGING || get_eng_version() == FACTORY) {
-			oppo_switch_fulldump(1);
-		}
-#endif
 		flush_cache_all();
 
 		/*outer_flush_all is not supported by 64bit kernel*/
@@ -745,14 +726,6 @@ static int msm_restart_probe(struct platform_device *pdev)
 	struct resource *mem;
 	struct device_node *np;
 	int ret = 0;
-
-#ifdef CONFIG_OPLUS_FEATURE_QCOM_MINIDUMP_ENHANCE
-/* Fuchun.Liao@BSP.CHG.Basic 2020/04/08 add for minidump customized */
-	if (oppo_daily_build() == true || get_eng_version() == AGING || get_eng_version() == FACTORY)
-		dload_type = SCM_DLOAD_FULLDUMP;
-	else
-		dload_type = SCM_DLOAD_MINIDUMP;
-#endif
 
 #ifdef CONFIG_QCOM_DLOAD_MODE
 	if (scm_is_call_available(SCM_SVC_BOOT, SCM_DLOAD_CMD) > 0)
