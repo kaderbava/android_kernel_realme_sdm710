@@ -72,7 +72,6 @@
 #include "oplus_short.h"
 #include "oplus_adapter.h"
 #include "charger_ic/oplus_short_ic.h"
-#include "oplus_debug_info.h"
 
 static struct oplus_chg_chip *g_charger_chip = NULL;
 
@@ -1688,7 +1687,6 @@ int oplus_chg_init(struct oplus_chg_chip *chip)
 	}
 #endif
 
-	oplus_chg_debug_info_init();
 	init_proc_chg_log();
 	init_proc_chg_cycle();
 	init_proc_critical_log();
@@ -6179,7 +6177,6 @@ static void oplus_chg_other_thing(struct oplus_chg_chip *chip)
 			chip->total_time += OPLUS_CHG_UPDATE_INTERVAL_SEC;
 		};
 	}
-	oplus_chg_debug_chg_monitor(chip);
 	oplus_chg_print_log(chip);
 	oplus_chg_critical_log(chip);
 }
@@ -6691,7 +6688,6 @@ void oplus_chg_soc_update(void)
 	}
 	oplus_chg_update_ui_soc(g_charger_chip);
 
-	oplus_chg_debug_set_soc_info(g_charger_chip);
 }
 
 int oplus_chg_get_chg_type(void)
