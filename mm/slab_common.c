@@ -981,12 +981,7 @@ void __init setup_kmalloc_cache_index_table(void)
 static void __init new_kmalloc_cache(int idx, unsigned long flags)
 {
 	kmalloc_caches[idx] = create_kmalloc_cache(kmalloc_info[idx].name,
-#if defined(CONFIG_OPLUS_FEATURE_SLABTRACE_DEBUG)
-/* wen.luo@BSP.Kernel.Stability 2020-03-10, simple slabtrce for memleak analysis */
-					kmalloc_info[idx].size, flags|SLAB_STORE_USER);
-#else
 					kmalloc_info[idx].size, flags);
-#endif
 }
 
 /*
