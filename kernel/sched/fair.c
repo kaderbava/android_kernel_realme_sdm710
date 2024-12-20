@@ -36,10 +36,6 @@
 #include "tune.h"
 #include "walt.h"
 #include <trace/events/sched.h>
-#if defined(VENDOR_EDIT) && defined(CONFIG_OPLUS_HEALTHINFO)
-// Add for get cpu load
-#include <soc/oplus/healthinfo.h>
-#endif /*VENDOR_EDIT*/
 #ifdef OPLUS_FEATURE_UIFIRST
 #include <linux/uifirst/uifirst_sched_common.h>
 #endif /* OPLUS_FEATURE_UIFIRST */
@@ -975,11 +971,6 @@ update_stats_wait_end(struct cfs_rq *cfs_rq, struct sched_entity *se)
 			return;
 		}
 		trace_sched_stat_wait(p, delta);
-#if defined (VENDOR_EDIT) && defined(CONFIG_OPLUS_HEALTHINFO)
-// Add for get sched latency stat
-		ohm_schedstats_record(OHM_SCHED_SCHEDLATENCY, p, (delta >> 20));
-#endif /*VENDOR_EDIT*/
-
 	}
 
 	schedstat_set(se->statistics.wait_max,
@@ -1038,16 +1029,7 @@ update_stats_enqueue_sleeper(struct cfs_rq *cfs_rq, struct sched_entity *se)
 				schedstat_add(se->statistics.iowait_sum, delta);
 				schedstat_inc(se->statistics.iowait_count);
 				trace_sched_stat_iowait(tsk, delta);
-#if defined (VENDOR_EDIT) && defined(CONFIG_OPLUS_HEALTHINFO)
-// Add for get iowait
-				ohm_schedstats_record(OHM_SCHED_IOWAIT, tsk, (delta >> 20));
-#endif /*VENDOR_EDIT*/
 			}
-#if defined(VENDOR_EDIT) && defined(CONFIG_OPLUS_HEALTHINFO)
-			if(!tsk->in_iowait) {
-				 ohm_schedstats_record(OHM_SCHED_DSTATE, tsk, (delta >> 20));
-			}
-#endif /*VENDOR_EDIT*/
 
 			trace_sched_stat_blocked(tsk, delta);
 			trace_sched_blocked_reason(tsk);
