@@ -6,5 +6,3 @@ source "drivers/soc/oplus/system/Kconfig"
 #ifdef OPLUS_FEATURE_POWERINFO_STANDBY
 source "drivers/soc/oplus/owakelock/Kconfig"
 #endif /* OPLUS_FEATURE_POWERINFO_STANDBY */
-
-source "drivers/soc/oplus/oplus_healthinfo/Kconfig"

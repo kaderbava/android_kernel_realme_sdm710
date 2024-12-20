@@ -48,10 +48,6 @@
 #include "ion_priv.h"
 #include "compat_ion.h"
 
-#ifdef VENDOR_EDIT
-#include <linux/oplus_healthinfo/ion.h>
-#endif
-
 #if IS_ENABLED(CONFIG_PROC_FS)
 #include <linux/proc_fs.h>
 #endif
@@ -197,8 +193,6 @@ static void ion_buffer_add(struct ion_device *dev,
 }
 
 /* this function should only be called while dev->lock is held */
-extern bool ion_cnt_enable;
-extern atomic_long_t ion_total_size;
 static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
 				     struct ion_device *dev,
 				     unsigned long len,
@@ -285,11 +279,6 @@ static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
 	mutex_unlock(&dev->buffer_lock);
 	atomic_long_add(len, &heap->total_allocated);
 
-#ifdef VENDOR_EDIT
-	if (ion_cnt_enable)
-		atomic_long_add(buffer->size, &ion_total_size);
-#endif
-
 	return buffer;
 
 err:
@@ -308,10 +297,6 @@ void ion_buffer_destroy(struct ion_buffer *buffer)
 			     __func__);
 		buffer->heap->ops->unmap_kernel(buffer->heap, buffer);
 	}
-#ifdef VENDOR_EDIT
-	if (ion_cnt_enable)
-		atomic_long_sub(buffer->size, &ion_total_size);
-#endif /*VENDOR_EDIT*/
 
 	buffer->heap->ops->unmap_dma(buffer->heap, buffer);
 
