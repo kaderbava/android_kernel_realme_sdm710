@@ -16,10 +16,6 @@
 #include <linux/quotaops.h>
 #include <linux/backing-dev.h>
 #include "internal.h"
-#if defined(VENDOR_EDIT) && defined(CONFIG_OPLUS_HEALTHINFO)
-// Add for get cpu load
-#include <soc/oplus/healthinfo.h>
-#endif /*VENDOR_EDIT*/
 
 #define VALID_FLAGS (SYNC_FILE_RANGE_WAIT_BEFORE|SYNC_FILE_RANGE_WRITE| \
 			SYNC_FILE_RANGE_WAIT_AFTER)
@@ -218,21 +214,12 @@ static int do_fsync(unsigned int fd, int datasync)
 {
 	struct fd f = fdget(fd);
 	int ret = -EBADF;
-#if defined(VENDOR_EDIT) && defined(CONFIG_OPLUS_HEALTHINFO)
-// Add for record  fsync  time
-	unsigned long oppo_fsync_time = jiffies;
-#endif /*VENDOR_EDIT*/
 
 	if (f.file) {
 		ret = vfs_fsync(f.file, datasync);
 		fdput(f);
 		inc_syscfs(current);
 	}
-#if defined(VENDOR_EDIT) && defined(CONFIG_OPLUS_HEALTHINFO)
-// Add for record  fsync  time
-	ohm_schedstats_record(OHM_SCHED_FSYNC, current, jiffies_to_msecs(jiffies - oppo_fsync_time));
-#endif /*VENDOR_EDIT*/
-
 	return ret;
 }
 

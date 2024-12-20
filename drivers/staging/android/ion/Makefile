@@ -12,7 +12,3 @@ obj-$(CONFIG_ION_TEGRA) += tegra/
 obj-$(CONFIG_ION_HISI) += hisilicon/
 
 obj-$(CONFIG_ION_MSM) += msm/
-
-#ifdef VENDOR_EDIT
-obj-y	+= oplus_ion/
-#endif /* VENDOR_EDIT */

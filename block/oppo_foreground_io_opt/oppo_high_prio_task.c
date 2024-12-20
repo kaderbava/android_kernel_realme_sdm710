@@ -14,9 +14,6 @@
 #include "oppo_foreground_io_opt.h"
 
 #define SYSTEM_APP_UID 1000
-#ifdef CONFIG_FG_TASK_UID
-extern bool is_fg(int uid);
-#endif /*CONFIG_FG_TASK_UID*/
 static bool is_system_uid(struct task_struct *t)
 {
 	int cur_uid;
@@ -71,9 +68,6 @@ bool is_filter_process(struct task_struct *t)
 static inline bool is_fg_task_without_sysuid(struct task_struct *t)
 {
 		if(!is_system_uid(t)
-#ifdef CONFIG_FG_TASK_UID
-		&&is_fg(task_uid(t).val)
-#endif /*CONFIG_FG_TASK_UID*/
 		)
 		return true;
 
