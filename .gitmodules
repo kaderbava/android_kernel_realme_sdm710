@@ -1,4 +1,3 @@
-[submodule "KernelSU"]
-        path = KernelSU
-        url = https://github.com/tiann/KernelSU.git
-        branch = main
+[submodule "KernelSU-Next"]
+        path = KernelSU-Next
+        url = https://github.com/rifsxd/KernelSU-Next.git
