@@ -1345,6 +1345,8 @@ static void ps_remove(struct hid_device *hdev)
 
 	hid_hw_close(hdev);
 	hid_hw_stop(hdev);
+
+	sysfs_remove_group(&hdev->dev.kobj, &ps_device_attribute_group);
 }
 
 static const struct hid_device_id ps_devices[] = {
