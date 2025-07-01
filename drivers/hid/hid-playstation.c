@@ -324,7 +324,7 @@ static int ps_devices_list_remove(struct ps_device *dev)
 
 static int ps_device_set_player_id(struct ps_device *dev)
 {
-	int ret = ida_alloc(&ps_player_id_allocator, GFP_KERNEL);
+	int ret = ida_simple_get(&ps_player_id_allocator, 0, 0, GFP_KERNEL);
 
 	if (ret < 0)
 		return ret;
@@ -335,7 +335,7 @@ static int ps_device_set_player_id(struct ps_device *dev)
 
 static void ps_device_release_player_id(struct ps_device *dev)
 {
-	ida_free(&ps_player_id_allocator, dev->player_id);
+	ida_simple_remove(&ps_player_id_allocator, dev->player_id);
 
 	dev->player_id = U32_MAX;
 }
@@ -1321,7 +1321,7 @@ static int ps_probe(struct hid_device *hdev, const struct hid_device_id *id)
 		}
 	}
 
-	ret = devm_device_add_group(&hdev->dev, &ps_device_attribute_group);
+	ret = sysfs_create_group(&hdev->dev.kobj, &ps_device_attribute_group);
 	if (ret) {
 		hid_err(hdev, "Failed to register sysfs nodes.\n");
 		goto err_close;
