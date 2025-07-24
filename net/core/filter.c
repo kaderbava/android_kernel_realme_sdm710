@@ -67,6 +67,7 @@
 #include <net/inet6_hashtables.h>
 #include <net/net_namespace.h>
 #include <net/lwtunnel.h>
+#include <net/ipv6_stubs.h>
 #include <net/bpf_sk_storage.h>
 #include <net/transp_v6.h>
 #include <linux/btf_ids.h>
