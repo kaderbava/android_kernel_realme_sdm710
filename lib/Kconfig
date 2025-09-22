@@ -235,9 +235,6 @@ config LZO_DECOMPRESS
 config LZ4_COMPRESS
 	tristate
 
-config LZ4HC_COMPRESS
-	tristate
-
 config LZ4_DECOMPRESS
 	tristate
 
@@ -288,7 +285,7 @@ config GENERIC_ALLOCATOR
 #
 config REED_SOLOMON
 	tristate
-	
+
 config REED_SOLOMON_ENC8
 	bool
 
