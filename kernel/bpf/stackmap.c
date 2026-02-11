@@ -12,7 +12,7 @@
 #include "percpu_freelist.h"
 
 #define STACK_CREATE_FLAG_MASK \
-	(BPF_F_RDONLY | BPF_F_WRONLY)
+	(BPF_F_NUMA_NODE | BPF_F_RDONLY | BPF_F_WRONLY)
 
 struct stack_map_bucket {
 	struct pcpu_freelist_node fnode;
