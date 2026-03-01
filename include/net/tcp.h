@@ -20,6 +20,20 @@
 
 #define FASTRETRANS_DEBUG 1
 
+#include <linux/types.h>
+#include <linux/jiffies.h>
+
+#ifndef time_after32
+#define time_after32(a, b) ((s32)((u32)(a) - (__u32)(b)) > 0)
+#endif
+
+
+#ifndef time_between32
+#define time_between32(a, b, c) (time_after32(c, b) ? \
+		(time_after32(a, b) && time_after32(c, a)) : \
+		(time_after32(a, b) || time_after32(c, a)))
+#endif
+
 #include <linux/list.h>
 #include <linux/tcp.h>
 #include <linux/bug.h>
@@ -554,6 +568,7 @@ static inline void tcp_synq_overflow(const struct sock *sk)
 static inline bool tcp_synq_no_recent_overflow(const struct sock *sk)
 {
 	unsigned long last_overflow = READ_ONCE(tcp_sk(sk)->rx_opt.ts_recent_stamp);
+        unsigned long now = jiffies;
 
 	/* If last_overflow <= jiffies <= last_overflow + TCP_SYNCOOKIE_VALID,
 	 * then we're under synflood. However, we have to use

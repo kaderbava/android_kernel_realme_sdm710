@@ -12,6 +12,11 @@
 ** penghao 2019/10/02 1.0 build this module
 ****************************************************************/
 
+#ifndef time_after32
+#define time_after32(a, b) ((s32)((u32)(a) - (__u32)(b)) > 0)
+#endif
+
+#include <linux/jiffies.h>
 #include <linux/types.h>
 #include <linux/ip.h>
 #include <linux/netfilter.h>
