@@ -1677,6 +1677,16 @@ void sk_free(struct sock *sk)
 }
 EXPORT_SYMBOL(sk_free);
 
+void sk_free_unlock_clone(struct sock *sk)
+{
+	/* It is still raw copy of parent, so invalidate
+	 * destructor and make plain sk_free() */
+	sk->sk_destruct = NULL;
+	bh_unlock_sock(sk);
+	sk_free(sk);
+}
+EXPORT_SYMBOL_GPL(sk_free_unlock_clone);
+
 /**
  *	sk_clone_lock - clone a socket, and lock its clone
  *	@sk: the socket to clone
