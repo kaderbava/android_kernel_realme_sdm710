@@ -492,7 +492,7 @@ static int convert___skb_to_skb(struct sk_buff *skb, struct __sk_buff *__skb)
 
 	skb->mark = __skb->mark;
 	skb->priority = __skb->priority;
-	skb->tstamp = __skb->tstamp;
+	skb->tstamp = (ktime_t){ .tv64 = __skb->tstamp };
 	memcpy(&cb->data, __skb->cb, QDISC_CB_PRIV_LEN);
 
 	if (__skb->wire_len == 0) {
@@ -522,7 +522,7 @@ static void convert_skb_to___skb(struct sk_buff *skb, struct __sk_buff *__skb)
 	__skb->mark = skb->mark;
 	__skb->priority = skb->priority;
 	__skb->ifindex = skb->dev->ifindex;
-	__skb->tstamp = skb->tstamp;
+	__skb->tstamp = skb->tstamp.tv64;
 	memcpy(__skb->cb, &cb->data, QDISC_CB_PRIV_LEN);
 	__skb->wire_len = cb->pkt_len;
 	__skb->gso_segs = skb_shinfo(skb)->gso_segs;
