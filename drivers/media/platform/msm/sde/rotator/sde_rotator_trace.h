@@ -203,7 +203,7 @@ TRACE_EVENT(rot_bw_ao_as_context,
 
 #define SDE_ROT_TRACE_EVTLOG_SIZE	15
 TRACE_EVENT(sde_rot_evtlog,
-	TP_PROTO(const char *tag, u32 tag_id, u32 cnt, u32 data[]),
+	TP_PROTO(const char *tag, u32 tag_id, u32 cnt, u32 *data),
 	TP_ARGS(tag, tag_id, cnt, data),
 	TP_STRUCT__entry(
 			__field(int, pid)
@@ -217,10 +217,10 @@ TRACE_EVENT(sde_rot_evtlog,
 			__entry->tag_id = tag_id;
 			if (cnt > SDE_ROT_TRACE_EVTLOG_SIZE)
 				cnt = SDE_ROT_TRACE_EVTLOG_SIZE;
-			memcpy(__entry->data, data, cnt * sizeof(u32));
+			memcpy(__entry->data, data, cnt * sizeof(__entry->data[0]));
 			memset(&__entry->data[cnt], 0,
 				(SDE_ROT_TRACE_EVTLOG_SIZE - cnt) *
-				sizeof(u32));
+				sizeof(__entry->data[0]));
 	),
 	TP_printk("%d|%s:%d|%x|%x|%x|%x|%x|%x|%x|%x|%x|%x|%x|%x|%x|%x|%x",
 			__entry->pid, __get_str(evtlog_tag),
