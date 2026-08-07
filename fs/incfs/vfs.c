@@ -35,9 +35,6 @@
 #define SB_ACTIVE	(1<<30)
 #endif
 
-/* Needed for kernel 4.14 - remove for later kernels */
-typedef unsigned int __poll_t;
-
 static int incfs_remount_fs(struct super_block *sb, int *flags, char *data);
 
 static int dentry_revalidate(struct dentry *dentry, unsigned int flags);
