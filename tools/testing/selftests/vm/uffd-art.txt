@@ -1,0 +1,69 @@
+Android userfaultfd regression tests
+===================================
+
+uffd-art exercises the interfaces used by Android ART's mark-compact
+collector, together with related event and memory-accounting paths.
+
+Coverage includes API negotiation and concurrent initialization,
+unprivileged user-mode-only faults, SIGBUS, thread IDs, anonymous and
+shmem COPY/ZEROPAGE, shmem minor faults and CONTINUE, private shmem COW,
+the Android MMAP_TRYLOCK probe, DONTUNMAP for private and shared
+mappings,
+invalid requests, release wakeups, REMOVE, UNMAP and REMAP events, and
+private hugetlb minor faults with COW.
+
+Build from the kernel source directory. Keep generated files outside
+the source tree, for example:
+
+    work="$HOME/TEMP/uffd-selftest"
+    mkdir -p "$work"
+    make ARCH=arm64 O="$work/kernel" \
+        INSTALL_HDR_PATH="$work/headers" headers_install
+    aarch64-linux-gnu-gcc -static -O2 -Wall -Wextra -Werror -pthread \
+        -I"$work/headers/include" \
+        tools/testing/selftests/vm/uffd-art.c -o "$work/uffd-art"
+
+For a 32-bit binary, export headers for ARCH=arm into a separate
+directory so the syscall numbers match the ARM EABI:
+
+    make ARCH=arm O="$work/kernel32" \
+        INSTALL_HDR_PATH="$work/headers32" headers_install
+    arm-linux-gnueabi-gcc -static -O2 -Wall -Wextra -Werror -pthread \
+        -I"$work/headers32/include" \
+        tools/testing/selftests/vm/uffd-art.c -o "$work/uffd-art32"
+
+A static ARM EABI glibc binary may require CONFIG_KUSER_HELPERS in the
+test kernel.
+
+The test kernel needs USERFAULTFD, SHMEM, TMPFS, EPOLL, FUTEX and COMPAT
+for the 32-bit run. Enable MEMCG and DEBUG_VM when checking backported
+page charging. Run the executable in a memory cgroup with a limit of at
+least 256 MiB to exercise charging outside the root memory cgroup.
+
+Huge-page coverage also needs HUGETLBFS and free 2 MiB huge pages. On
+kernels without MFD_HUGETLB, mount hugetlbfs at /huge. The test uses
+/huge/uffd-test as a fallback and removes it after a successful run.
+Provision at least two huge pages; the separate legacy huge-page
+stress test needs additional pages. Missing huge-page support produces
+a TAP skip, while any failed assertion makes the executable exit 1.
+
+The suite emits 24 TAP results and a failed/skipped count. Each case
+runs in a separate process with a 20-second timeout. Running as root
+also tests dropping to UID/GID 10000 before creating a user-mode-only
+userfaultfd. This does not require enabling unprivileged handling of
+kernel-originated faults.
+
+For additional racing COPY and fault stress, build and run the
+existing userfaultfd, userfaultfd_shmem and userfaultfd_hugetlb tests:
+
+    ./userfaultfd 16 10
+    ./userfaultfd_shmem 16 10
+    ./userfaultfd_hugetlb 8 10 /huge/stress
+
+Those arguments exercise 10 bounces with 16 MiB anonymous/shmem areas
+and 8 MiB huge-page areas. The huge-page test requires enough free
+pages for both source and destination areas.
+
+Kernel interface tests do not verify Android SELinux policy, seccomp,
+ART collector selection or device boot behavior. Verify those with
+the intended Android build and its normal enforcing policy.

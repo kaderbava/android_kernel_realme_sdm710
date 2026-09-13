@@ -131,7 +131,8 @@ static void allocate_area(void **alloc_area)
 
 #else /* HUGETLB_TEST or SHMEM_TEST */
 
-#define EXPECTED_IOCTLS		UFFD_API_RANGE_IOCTLS_BASIC
+#define EXPECTED_IOCTLS (UFFD_API_RANGE_IOCTLS_BASIC & \
+			 ~((__u64)1 << _UFFDIO_CONTINUE))
 
 #ifdef HUGETLB_TEST
 
@@ -531,7 +532,8 @@ static int userfaultfd_stress(void)
 	if (!area_dst)
 		return 1;
 
-	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK);
+	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK |
+		       UFFD_USER_MODE_ONLY);
 	if (uffd < 0) {
 		fprintf(stderr,
 			"userfaultfd syscall not available in this kernel\n");
