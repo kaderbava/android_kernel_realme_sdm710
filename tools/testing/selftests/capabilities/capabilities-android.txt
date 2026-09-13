@@ -1,0 +1,73 @@
+Android capability regression tests
+===================================
+
+capabilities-android tests the capability interface used by the native
+Android zygote and the CAP_BPF/CAP_CHECKPOINT_RESTORE permission split.
+It queries capabilities 0 through 40, rejects capability 41, and runs a
+bounding-set query/drop loop in a child process. Ambient-capability
+checks cover both new capability numbers.
+
+The BPF cases distinguish CAP_BPF from CAP_PERFMON and CAP_NET_ADMIN.
+They also check CAP_SYS_ADMIN compatibility, protected helpers, the
+zero hash seed, uninitialized stack and kernel-pointer restrictions,
+and the translated array-lookup masking instructions. Programs are
+loaded and inspected, never attached or executed. Loading the permitted
+probe_write_user case emits the kernel's normal helper warning.
+
+Checkpoint/restore cases cover map_files, ns_last_pid and the exe_file
+permission check in PR_SET_MM_MAP. PID allocation is changed only in a
+private PID namespace. The exe_file check uses an invalid descriptor to
+test authorization without replacing the executable mapping.
+
+Build from the kernel source directory with exported kernel headers:
+
+    cap_work="$HOME/TEMP/capability-selftest"
+    mkdir -p "$cap_work"
+    make ARCH=arm64 O="$cap_work/kernel" \
+        INSTALL_HDR_PATH="$cap_work/headers" headers_install
+    aarch64-linux-gnu-gcc -static -O2 -Wall -Wextra -Werror \
+        -I"$cap_work/headers/include" \
+        tools/testing/selftests/capabilities/capabilities-android.c \
+        -o "$cap_work/capabilities-android"
+
+For a 32-bit binary, export ARM headers into a separate directory:
+
+    make ARCH=arm O="$cap_work/kernel32" \
+        INSTALL_HDR_PATH="$cap_work/headers32" headers_install
+    arm-linux-gnueabi-gcc -static -O2 -Wall -Wextra -Werror \
+        -I"$cap_work/headers32/include" \
+        tools/testing/selftests/capabilities/capabilities-android.c \
+        -o "$cap_work/capabilities-android32"
+
+Run the full suite as root in an isolated test system with /proc mounted
+and a writable /tmp. The parent keeps its capabilities; each test drops
+to its exact capability set in a separate child. Missing permitted
+capabilities produce skips. The suite prints 35 TAP results and exits 1
+on failures, 4 when every case is skipped, or 0 otherwise.
+
+Full coverage needs MULTIUSER, BPF_SYSCALL, BPF_JIT, BPF_EVENTS,
+PERF_EVENTS, KPROBES, NET_CLS_BPF, CHECKPOINT_RESTORE, PID_NS, PROC_FS
+and PROC_SYSCTL. Enable the BPF JIT before running the array masking
+cases. The 32-bit run needs COMPAT; a static ARM EABI glibc executable
+may also need KUSER_HELPERS.
+
+The three PR_SET_MM_MAP cases run only with the native 64-bit ABI. Its
+structure contains a native pointer, and this kernel has no compat
+translation. The 32-bit suite explicitly skips those cases. This does
+not affect 32-bit capability queries, drops, ambient capabilities or
+the other permission checks.
+
+For the Android startup regression alone, run:
+
+    ./capabilities-android --bounds-only
+
+That mode runs only the first three cases and needs CAP_SETPCAP for the
+bounding-set drop test. It does not require BPF or checkpoint/restore
+configuration options. On the older kernel, the query and drop loops
+fail at capability 39 with EINVAL. With both backports, cap_last_cap is
+40 and all three cases pass. Capability 41 must still return EINVAL.
+
+Kernel tests do not verify the Android SELinux policy or the complete
+app-opening sequence. Repeat the original launcher/app-switching
+reproduction on the intended Android build with enforcing policy, and
+check for new native-zygote aborts and process-start timeouts.

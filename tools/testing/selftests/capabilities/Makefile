@@ -1,10 +1,12 @@
 TEST_FILES := validate_cap
-TEST_PROGS := test_execve
+TEST_PROGS := test_execve capabilities-android
 
 BINARIES := $(TEST_FILES) $(TEST_PROGS)
 
 CFLAGS += -O2 -g -std=gnu99 -Wall
 LDLIBS += -lcap-ng -lrt -ldl
+
+capabilities-android: LDLIBS :=
 
 all: $(BINARIES)
 
