@@ -251,7 +251,8 @@ static __always_inline ssize_t __mcopy_atomic_hugetlb(struct mm_struct *dst_mm,
 					      unsigned long src_start,
 					      unsigned long len,
 					      atomic_t *mmap_changing,
-					      enum mcopy_atomic_mode mode)
+					      enum mcopy_atomic_mode mode,
+					      __u64 uffd_flags)
 {
 	int vm_alloc_shared = dst_vma->vm_flags & VM_SHARED;
 	int vm_shared = dst_vma->vm_flags & VM_SHARED;
@@ -379,7 +380,14 @@ retry:
 				err = -EFAULT;
 				goto out;
 			}
-			down_read(&dst_mm->mmap_sem);
+			if (uffd_flags & UFFDIO_MODE_MMAP_TRYLOCK) {
+				if (!down_read_trylock(&dst_mm->mmap_sem)) {
+					err = -EAGAIN;
+					goto out;
+				}
+			} else {
+				down_read(&dst_mm->mmap_sem);
+			}
 			/*
 			 * If memory mappings are changing because of non-cooperative
 			 * operation (e.g. mremap) running in parallel, bail out and
@@ -471,7 +479,8 @@ extern ssize_t __mcopy_atomic_hugetlb(struct mm_struct *dst_mm,
 				      unsigned long src_start,
 				      unsigned long len,
 				      atomic_t *mmap_changing,
-				      enum mcopy_atomic_mode mode);
+				      enum mcopy_atomic_mode mode,
+					      __u64 uffd_flags);
 #endif /* CONFIG_HUGETLB_PAGE */
 
 static __always_inline ssize_t mfill_atomic_pte(struct mm_struct *dst_mm,
@@ -611,7 +620,7 @@ retry:
 	if (is_vm_hugetlb_page(dst_vma))
 		return  __mcopy_atomic_hugetlb(dst_mm, dst_vma, dst_start,
 						src_start, len, mmap_changing,
-						mcopy_mode);
+						mcopy_mode, mode);
 
 	if (!vma_is_anonymous(dst_vma) && !vma_is_shmem(dst_vma))
 		goto out_unlock;
@@ -742,4 +751,3 @@ ssize_t mcopy_continue(struct mm_struct *dst_mm, unsigned long start,
 	return __mcopy_atomic(dst_mm, start, 0, len, MCOPY_ATOMIC_CONTINUE,
 			      mmap_changing, 0);
 }
-
