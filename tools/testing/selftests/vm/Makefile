@@ -14,6 +14,7 @@ BINARIES += on-fault-limit
 BINARIES += thuge-gen
 BINARIES += transhuge-stress
 BINARIES += userfaultfd
+BINARIES += uffd-art
 BINARIES += userfaultfd_hugetlb
 BINARIES += userfaultfd_shmem
 BINARIES += mlock-random-test
@@ -21,6 +22,9 @@ BINARIES += mlock-random-test
 all: $(BINARIES)
 %: %.c
 	$(CC) $(CFLAGS) -o $@ $^ -lrt
+uffd-art: uffd-art.c ../../../../usr/include/linux/kernel.h
+	$(CC) $(CFLAGS) -O2 -o $@ $< -lpthread
+
 userfaultfd: userfaultfd.c ../../../../usr/include/linux/kernel.h
 	$(CC) $(CFLAGS) -O2 -o $@ $< -lpthread
 
