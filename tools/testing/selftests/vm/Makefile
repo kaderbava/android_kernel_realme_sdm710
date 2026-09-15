@@ -18,6 +18,7 @@ BINARIES += uffd-art
 BINARIES += userfaultfd_hugetlb
 BINARIES += userfaultfd_shmem
 BINARIES += mlock-random-test
+BINARIES += process_madvise
 
 all: $(BINARIES)
 %: %.c
