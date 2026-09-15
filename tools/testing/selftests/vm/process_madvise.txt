@@ -1,0 +1,54 @@
+Android process reclaim regression test
+======================================
+
+process_madvise tests MADV_COLD, MADV_PAGEOUT and process_madvise(). It
+checks real swap-out and byte-for-byte data preservation, including a
+remote process, shared copy-on-write pages, locked VMAs, huge pages,
+permission failure, invalid vectors and partial-success byte counts.
+
+Run as root with CAP_SYS_NICE, CAP_SYS_PTRACE and CAP_IPC_LOCK in an
+isolated test VM with /proc, /sys and at least 32 MiB of active swap.
+The test uses private mappings and temporarily drops a capability only
+in a child. It does not change swap or reclaim settings. The test VM
+used for development has 4 GiB of LZ4 zram, matching the device's swap
+size and compressor. It has 1536 MiB of physical memory.
+
+Build from the kernel source directory:
+
+    reclaim_work="$HOME/TEMP/reclaim-selftest"
+    mkdir -p "$reclaim_work"
+    aarch64-linux-gnu-gcc -static -O2 -Wall -Wextra -Werror \
+        tools/testing/selftests/vm/process_madvise.c \
+        -o "$reclaim_work/process_madvise"
+    arm-linux-gnueabi-gcc -static -O2 -Wall -Wextra -Werror \
+        tools/testing/selftests/vm/process_madvise.c \
+        -o "$reclaim_work/process_madvise32"
+
+Run both binaries on the same ARM64 kernel to cover the native and
+compat iovec layouts. COMPAT is required for the second binary; a
+static ARM EABI glibc binary may also require KUSER_HELPERS. The test
+assumes the syscall numbers shared by ARM64, ARM EABI and x86. It is
+not a portable syscall-number definition for every architecture.
+
+Required configuration: ADVISE_SYSCALLS, PROC_FS, PROC_PAGE_MONITOR
+and SWAP. The kernel must also provide pidfd_open().
+For full huge-page coverage, enable TRANSPARENT_HUGEPAGE and its
+"madvise" or "always" runtime policy. The huge-page cases verify that
+an actual THP was allocated before testing full or partial reclaim.
+They are skipped when THP support is unavailable. The Exynos9810
+production configurations keep THP disabled.
+
+A complete run prints 45 TAP results on ARM64 and 44 on ARM compat.
+The native-only check rejects an iovec count that would truncate when
+converted to 32 bits. A kernel without THP runs eight fewer checks.
+Exit status is 0 on success, 1 on failure, or 4 when root or sufficient
+swap is unavailable. A 180-second alarm bounds the run.
+
+Enable DEBUG_VM and PROVE_LOCKING in the test kernel and inspect its
+log for memory-management or locking warnings. A successful syscall
+alone is insufficient: the swap counters, residency and every byte of
+the mappings must also pass. Run this test directly; run_vmtests does
+not enable swap or launch it automatically.
+
+These tests establish reclaim correctness. App retention, UI latency
+and battery use still require measurements on the Android device.
