@@ -780,16 +780,9 @@ static void binder_restore_priority(struct binder_thread *thread,
 	binder_do_set_priority(thread, desired, /* verify = */ false);
 }
 
-#ifdef OPLUS_FEATURE_UIFIRST
-static void binder_transaction_priority(struct binder_thread *thread, struct task_struct *task,
-					struct binder_transaction *t,
-					struct binder_priority node_prio,
-					bool inherit_rt)
-#else
 static void binder_transaction_priority(struct binder_thread *thread,
 					struct binder_transaction *t,
 					struct binder_node *node)
-#endif /* OPLUS_FEATURE_UIFIRST */
 {
 	struct task_struct *task = thread->task;
 	struct binder_priority desired = t->priority;
@@ -2958,12 +2951,7 @@ static int binder_proc_transaction(struct binder_transaction *t,
 		thread = binder_select_thread_ilocked(proc);
 
 	if (thread) {
-#ifdef OPLUS_FEATURE_UIFIRST
-		binder_transaction_priority(thread, thread->task, t, node_prio,
-					    node->inherit_rt);
-#else
 		binder_transaction_priority(thread, t, node);
-#endif /* OPLUS_FEATURE_UIFIRST */
 		binder_enqueue_thread_work_ilocked(thread, &t->work);
 #ifdef OPLUS_FEATURE_UIFIRST
 		if (sysctl_uifirst_enabled) {
@@ -5035,12 +5023,7 @@ retry:
 
 			trd->target.ptr = target_node->ptr;
 			trd->cookie =  target_node->cookie;
-#ifdef OPLUS_FEATURE_UIFIRST
-			binder_transaction_priority(thread, current, t, node_prio,
-						    target_node->inherit_rt);
-#else
 			binder_transaction_priority(thread, t, target_node);
-#endif /* OPLUS_FEATURE_UIFIRST */
 			cmd = BR_TRANSACTION;
 		} else {
 			trd->target.ptr = 0;
