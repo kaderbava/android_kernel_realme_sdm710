@@ -67,7 +67,7 @@ static __inline__ void *drm_malloc_gfp(size_t nmemb, size_t size, gfp_t gfp)
 			return ptr;
 	}
 
-	return __vmalloc(size * nmemb, gfp, PAGE_KERNEL);
+	return __vmalloc(size * nmemb, gfp);
 }
 
 static __inline void drm_free_large(void *ptr)
